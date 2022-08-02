@@ -386,7 +386,7 @@ MonoBehaviour:
   camDir: {fileID: 586130503}
   yVelocity: 0
   jumpPower: 5
-  onGround: 1
+  isJumping: 0
 --- !u!1 &586130501
 GameObject:
   m_ObjectHideFlags: 0
@@ -842,7 +842,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 955057061}
-  - component: {fileID: 955057062}
   m_Layer: 0
   m_Name: PlayerMain
   m_TagString: Untagged
@@ -867,23 +866,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &955057062
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 955057060}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0be8a55e6055b544eba3c827ea7d734a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  walkSpeed: 10
-  camDir: {fileID: 586130503}
-  yVelocity: 0
-  jumpPower: 5
-  onGround: 1
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
