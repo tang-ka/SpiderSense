@@ -15,13 +15,10 @@ public class PlayerMove : MonoBehaviour
     public float yVelocity = 0;
     public float jumpPower = 5f;
     public bool isJumping;
-    int n = 0;
-    bool onWall;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        //rb = GetComponentInChildren<Rigidbody>();
     }
 
     void Update()
@@ -42,10 +39,7 @@ public class PlayerMove : MonoBehaviour
         Jump();
 
         rb.velocity = dir * walkSpeed;
-
     }
-
-    
 
     // 플레이어가 보는 방향을 카메라의 방향과 맞춰준다.
     void Rotate()
@@ -58,12 +52,10 @@ public class PlayerMove : MonoBehaviour
 
     void Jump()
     {
-
         yVelocity += gravity * Time.deltaTime;
         if (!isJumping)
         {
             yVelocity = 0;
-            print("속도 0");
         }
         IsJumping();
 
@@ -71,26 +63,15 @@ public class PlayerMove : MonoBehaviour
         {
             yVelocity = jumpPower;
             isJumping = true;
-            n = 5;
-            print(1);
         }
 
         dir.y = yVelocity;
         //print(isJumping);
     }
-    private void FixedUpdate()
-    {
-        
-    }
 
     void IsJumping()
     {
-        if(n > 0)
-        {
-            n--;
-            return;
-        }
-        Ray ray = new Ray(transform.position, -transform.up);
+        Ray ray = new Ray(transform.position + transform.up, -transform.up);
         RaycastHit hitInfo;
 
         if (Physics.Raycast(ray, out hitInfo))
@@ -98,13 +79,12 @@ public class PlayerMove : MonoBehaviour
             print("distance : " + hitInfo.distance);
             //print("Info : " + hitInfo.collider.tag);
             
-            if (hitInfo.distance < 1.001f)
+            if (hitInfo.distance < 1.1f && yVelocity <= 0)
             {
                 isJumping = false;
                 print("땅");
             }
             else
-
                 isJumping = true;
         }
         else
