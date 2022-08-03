@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PivotRotate : MonoBehaviour
+public class CamPivotRotate : MonoBehaviour
 {
     public float sensX = 500;
     public float sensY = 500;
