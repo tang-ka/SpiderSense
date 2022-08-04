@@ -1,14 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 // 입력을 받아 이동하고 싶다.
-public class PlayerMove : MonoBehaviour
+public class SSH_PlayerMove : MonoBehaviour
 {
     public float walkSpeed = 10;
     Vector3 dir = Vector3.zero;
 
     Rigidbody rb;
+    SSH_SpiderMove spiderMovement;
     public Transform camDir;
 
     float gravity = -9.81f;
@@ -16,28 +18,67 @@ public class PlayerMove : MonoBehaviour
     public float jumpPower = 5f;
     public bool isJumping;
 
+    #region Player state
+    public enum PlayerState
+    {
+        Normal,
+        Webbing
+    }
+    public PlayerState state = PlayerState.Normal;
+    #endregion
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        spiderMovement = GetComponent<SSH_SpiderMove>();
     }
 
     void Update()
     {
+        StateManage();
         Movement();
     }
 
-    void Movement()
+    private void StateManage()
     {
+        if (state == PlayerState.Normal)
+        {
+            NormalInput();
+        }
+        else if (state == PlayerState.Webbing)
+        {
+            WebbingInput();
+        }
+    }
+
+    private void WebbingInput()
+    {
+        Rotate();
+
+        float v = Input.GetAxisRaw("Vertical");
+
+        dir = transform.forward * v;
+        dir.Normalize();
+
+        Jump();
+    }
+
+    private void NormalInput()
+    {
+        // 일반적인 입력을 받아 이동하고 싶다.
         Rotate();
 
         float v = Input.GetAxisRaw("Vertical");
         float h = Input.GetAxisRaw("Horizontal");
 
-        dir = transform.right * h + transform.forward * v;
+        dir = transform.forward * v + transform.right * h;
         dir.Normalize();
 
         Jump();
+    }
 
+    void Movement()
+    {
         rb.velocity = dir * walkSpeed;
     }
 
@@ -66,23 +107,21 @@ public class PlayerMove : MonoBehaviour
         }
 
         dir.y = yVelocity;
-        //print(isJumping);
     }
 
     void IsJumping()
     {
         Ray ray = new Ray(transform.position + transform.up, -transform.up);
+
+        Debug.DrawRay(ray.origin, ray.direction * 1.1f, Color.red);
         RaycastHit hitInfo;
 
         if (Physics.Raycast(ray, out hitInfo))
         {
-            print("distance : " + hitInfo.distance);
-            //print("Info : " + hitInfo.collider.tag);
             
             if (hitInfo.distance < 1.1f && yVelocity <= 0)
             {
                 isJumping = false;
-                print("땅");
             }
             else
                 isJumping = true;

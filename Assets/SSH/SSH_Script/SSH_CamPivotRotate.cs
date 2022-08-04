@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CamPivotRotate : MonoBehaviour
+public class SSH_CamPivotRotate : MonoBehaviour
 {
     public float sensX = 500;
     public float sensY = 500;
@@ -14,6 +14,8 @@ public class CamPivotRotate : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        yRotation = transform.eulerAngles.y;
     }
 
     // Update is called once per frame
