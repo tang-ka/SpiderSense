@@ -12,6 +12,7 @@ public class SSH_PlayerMove : MonoBehaviour
     Vector3 dir;
 
     Rigidbody rb;
+    SSH_WebMove wm;
     public Transform body;
     public Transform camPivot;
 
@@ -24,42 +25,61 @@ public class SSH_PlayerMove : MonoBehaviour
     #region MoveState
     public enum MoveState
     {
-        NormalMove,
-        WebMove
+        Normal,
+        Webbing
     }
-    public MoveState moveState = MoveState.NormalMove;
+    public MoveState moveState = MoveState.Normal;
     #endregion
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        wm = GetComponent<SSH_WebMove>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        StateManage();
-    }
-
-    private void StateManage()
-    {
         switch (moveState)
         {
-            case MoveState.NormalMove:
-                PlayerRotate();
-                InputManage(MoveState.NormalMove);
-                Jump();
+            case MoveState.Normal:
+                NormalMove();
                 break;
 
-            case MoveState.WebMove:
-                PlayerRotate();
-                InputManage(MoveState.WebMove);
-                Jump();
+            case MoveState.Webbing:
+                WebMove();
                 break;
         }
 
         Movement();
+    }
+
+    private void NormalMove()
+    {
+        wm.isWebMove = false;
+        PlayerRotate(MoveState.Normal);
+        InputManage(MoveState.Normal);
+        Jump();
+
+        if (isJumping && Input.GetKey(KeyCode.E))
+        {
+            moveState = MoveState.Webbing;
+        }
+    }
+
+    private void WebMove()
+    {
+        PlayerRotate(MoveState.Webbing);
+        InputManage(MoveState.Webbing);
+        Jump();
+
+        if (isJumping)
+            wm.isWebMove = true;
+        else
+        {
+            moveState = MoveState.Normal;
+        }
     }
 
     void Movement()
@@ -67,9 +87,29 @@ public class SSH_PlayerMove : MonoBehaviour
         rb.velocity = dir * walkSpeed;
     }
 
+    void PlayerRotate(MoveState movestate)
+    {
+        if (moveState == MoveState.Normal)
+        {
+            transform.up = Vector3.Lerp(transform.up, Vector3.up, Time.deltaTime * 5);
+
+            Vector3 playerForward = camPivot.forward;
+            playerForward.y = 0;
+
+            body.forward = playerForward;
+        }
+        else if (moveState == MoveState.Webbing)
+        {
+            if (Input.GetKey(KeyCode.E))
+                transform.up = Vector3.Lerp(transform.up, wm.webDir, Time.deltaTime);
+            else
+                transform.up = Vector3.Lerp(transform.up, Vector3.up, Time.deltaTime * 5);
+        }
+    }
+
     void InputManage(MoveState movestate)
     {
-        if (moveState == MoveState.NormalMove)
+        if (moveState == MoveState.Normal)
         {
             float v = Input.GetAxisRaw("Vertical");
             float h = Input.GetAxisRaw("Horizontal");
@@ -77,7 +117,7 @@ public class SSH_PlayerMove : MonoBehaviour
             dir = body.forward * v + body.right * h;
             dir.Normalize();
         }
-        else if (moveState == MoveState.WebMove)
+        else if (moveState == MoveState.Webbing)
         {
             float v = Input.GetAxisRaw("Vertical");
 
@@ -85,15 +125,7 @@ public class SSH_PlayerMove : MonoBehaviour
             dir.Normalize();
         }
     }
-
-    void PlayerRotate()
-    {
-        Vector3 playerForward = camPivot.forward;
-        playerForward.y = 0;
-
-        body.forward = playerForward;
-    }
-
+    
     void Jump()
     {
         yVelocity += gravity * Time.deltaTime;
@@ -114,7 +146,7 @@ public class SSH_PlayerMove : MonoBehaviour
 
     void IsJumping()
     {
-        Ray ray = new Ray(transform.position + transform.up, -transform.up);
+        Ray ray = new Ray(body.position, -body.up);
         RaycastHit hitInfo;
         Debug.DrawRay(ray.origin, ray.direction * jumpRayLen, Color.red);
 

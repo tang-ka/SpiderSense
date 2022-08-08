@@ -8,6 +8,9 @@ public class SSH_WebMove : MonoBehaviour
     public Transform rightHand;
     public Transform leftHand;
     public Transform hook;
+    public Vector3 webDir;
+
+    public bool isWebMove = false;
 
     // Start is called before the first frame update
     void Start()
@@ -23,17 +26,24 @@ public class SSH_WebMove : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.E))
         {
-            Vector3 webDir;
-            RaycastHit hit;
-            ShootWeb(rightHand.position, hook.position, out webDir, out hit);
-            print(webDir + ", " +  hit.distance);
+            if (isWebMove == false) 
+            {
+                RaycastHit hit;
+                ShootWeb(rightHand.position, hook.position, out webDir, out hit);
+            }
+            else
+            {
+                RaycastHit hit;
+                ShootWeb(rightHand.position, hook.position, out webDir, out hit);
+                print(webDir + ", " +  hit.distance);
+            }
         }
         else if (Input.GetKeyUp(KeyCode.E))
             line.enabled = false;
 
     }
 
-    void ShootWeb(Vector3 start, Vector3 end, out Vector3 webDir, out RaycastHit hit)
+    public void ShootWeb(Vector3 start, Vector3 end, out Vector3 webDir, out RaycastHit hit)
     {
         webDir = end - start;
         float webLen = Vector3.Distance(start, end);
