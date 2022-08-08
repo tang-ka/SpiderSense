@@ -3,43 +3,40 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 입력을 받아 이동하고 싶다.
+// 1. 일반적인 입력을 받아 이동하고 싶다.
 public class SSH_PlayerMove : MonoBehaviour
 {
-    public float walkSpeed = 10;
-    Vector3 dir = Vector3.zero;
+    public float walkSpeed = 8;
+    public float runSpeed = 10;
+    public float sprintSpeed = 15;
+    Vector3 dir;
 
     Rigidbody rb;
-    SSH_SpiderMove spiderMovement;
-    SSH_CamPivotRotate cpr;
-    LineRenderer line;
-
-    float yRotation;
-    public Transform camDir;
+    public Transform body;
+    public Transform camPivot;
 
     float gravity = -9.81f;
     public float yVelocity = 0;
     public float jumpPower = 5f;
     public bool isJumping;
+    float jumpRayLen = 1.2f;
 
-    #region Player state
-    public enum PlayerState
+    #region MoveState
+    public enum MoveState
     {
-        Normal,
-        Webbing
+        NormalMove,
+        WebMove
     }
-    public PlayerState state = PlayerState.Normal;
+    public MoveState moveState = MoveState.NormalMove;
     #endregion
 
+    // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        spiderMovement = GetComponent<SSH_SpiderMove>();
-        cpr = GetComponentInChildren<SSH_CamPivotRotate>();
-        line = GetComponent<LineRenderer>();
-        line.positionCount = 2;
     }
 
+    // Update is called once per frame
     void Update()
     {
         StateManage();
@@ -47,108 +44,51 @@ public class SSH_PlayerMove : MonoBehaviour
 
     private void StateManage()
     {
-        if (state == PlayerState.Normal)
+        switch (moveState)
         {
-            Movement();
-            if (Input.GetKey(KeyCode.E))
-            {
-                state = PlayerState.Webbing;
-                yRotation = transform.eulerAngles.y;
-            }
+            case MoveState.NormalMove:
+                PlayerRotate();
+                InputManage(MoveState.NormalMove);
+                Jump();
+                break;
+
+            case MoveState.WebMove:
+                PlayerRotate();
+                InputManage(MoveState.WebMove);
+                Jump();
+                break;
         }
-        else if (state == PlayerState.Webbing)
-        {
-            WebSwing();
-            if (Input.GetKeyUp(KeyCode.E))
-                state = PlayerState.Normal;
-        }
-    }
 
-    public Transform hook;
-    public Transform rightHand;
-
-    Vector3 defaultHookPosition;
-    Vector3 grapHookPosition;
-
-    public Transform body;
-    private void WebSwing()
-    {
-        //transform.forward = camDir.forward;
-
-        if (Input.GetKey(KeyCode.E))
-        {
-            Vector3 webDir = hook.position - rightHand.position;
-            float webLen = Vector3.Distance(rightHand.position, hook.position);
-            print(webLen);
-
-            Ray web = new Ray(rightHand.position, webDir);
-            Debug.DrawRay(web.origin, web.direction * webLen, Color.white);
-            line.enabled = true;
-            line.startColor = Color.white;
-            line.endColor = Color.blue;
-            line.SetPosition(0, rightHand.position);
-
-            RaycastHit pivot;
-
-            if (Physics.Raycast(web, out pivot, webLen * 2))
-            {
-                Debug.DrawRay(transform.position, transform.up * webLen, Color.red);
-                line.SetPosition(1, pivot.point);
-                // 거미줄 
-                transform.up = Vector3.Lerp(transform.up, web.direction, Time.deltaTime * 5);
-
-                float mouseX = Input.GetAxisRaw("Mouse X") * cpr.sensX * Time.deltaTime;
-                yRotation += mouseX;
-                body.localEulerAngles = new Vector3(0, yRotation, 0);
-
-                //Vector3 webSwingRotataion = new Vector3(0, yRotation, 0);
-                //body.localEulerAngles = Vector3.Lerp(body.localEulerAngles, webSwingRotataion, Time.deltaTime * 10);
-
-                
-                //dir = transform.forward + transform.up;
-                
-
-                //float v = Input.GetAxisRaw("Vertical");
-
-                dir = body.forward;
-
-                //dir = transform.forward * v + transform.up;
-            }
-        }
-        //Jump();
-
-        //float theta = Vector3.Angle(-transform.up, Vector3.down);
-        //float webSwingSpeed = yVelocity * Mathf.Sin(theta * Mathf.Deg2Rad);
-
-        dir.Normalize();
-        //rb.velocity = dir * 10;
-
-        if (Input.GetKeyUp(KeyCode.E))
-        {
-            transform.up = Vector3.up;
-            line.enabled = false;
-        }
+        Movement();
     }
 
     void Movement()
     {
-        Rotate();
-
-        float v = Input.GetAxisRaw("Vertical");
-        float h = Input.GetAxisRaw("Horizontal");
-
-        dir = body.forward * v + body.right * h;
-        dir.Normalize();
-
-        Jump();
-
         rb.velocity = dir * walkSpeed;
     }
 
-    // 플레이어가 보는 방향을 카메라의 방향과 맞춰준다.
-    void Rotate()
+    void InputManage(MoveState movestate)
     {
-        Vector3 playerForward = camDir.transform.forward;
+        if (moveState == MoveState.NormalMove)
+        {
+            float v = Input.GetAxisRaw("Vertical");
+            float h = Input.GetAxisRaw("Horizontal");
+
+            dir = body.forward * v + body.right * h;
+            dir.Normalize();
+        }
+        else if (moveState == MoveState.WebMove)
+        {
+            float v = Input.GetAxisRaw("Vertical");
+
+            dir = body.forward * v;
+            dir.Normalize();
+        }
+    }
+
+    void PlayerRotate()
+    {
+        Vector3 playerForward = camPivot.forward;
         playerForward.y = 0;
 
         body.forward = playerForward;
@@ -175,35 +115,17 @@ public class SSH_PlayerMove : MonoBehaviour
     void IsJumping()
     {
         Ray ray = new Ray(transform.position + transform.up, -transform.up);
-
-        Debug.DrawRay(ray.origin, ray.direction * 1.2f, Color.red);
         RaycastHit hitInfo;
+        Debug.DrawRay(ray.origin, ray.direction * jumpRayLen, Color.red);
 
         if (Physics.Raycast(ray, out hitInfo))
         {
-            
-            if (hitInfo.distance < 1.2f && yVelocity <= 0)
-            {
+            if (hitInfo.distance < jumpRayLen && yVelocity <= 0)
                 isJumping = false;
-            }
             else
                 isJumping = true;
         }
         else
             isJumping = true;
-    }
-
-    private void NormalInput()
-    {
-        // 일반적인 입력을 받아 이동하고 싶다.
-        Rotate();
-
-        float v = Input.GetAxisRaw("Vertical");
-        float h = Input.GetAxisRaw("Horizontal");
-
-        dir = transform.forward * v + transform.right * h;
-        dir.Normalize();
-
-        Jump();
     }
 }
