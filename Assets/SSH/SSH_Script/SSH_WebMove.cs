@@ -35,7 +35,7 @@ public class SSH_WebMove : MonoBehaviour
             {
                 RaycastHit hit;
                 ShootWeb(rightHand.position, hook.position, out webDir, out hit);
-                print(webDir + ", " +  hit.distance);
+                //print(webDir + ", " +  hit.distance);
             }
         }
         else if (Input.GetKeyUp(KeyCode.E))

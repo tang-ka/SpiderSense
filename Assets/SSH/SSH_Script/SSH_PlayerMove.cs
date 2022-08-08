@@ -13,8 +13,11 @@ public class SSH_PlayerMove : MonoBehaviour
 
     Rigidbody rb;
     SSH_WebMove wm;
+    SSH_CamPivotRotate cpr;
     public Transform body;
     public Transform camPivot;
+
+    float yRotation;
 
     float gravity = -9.81f;
     public float yVelocity = 0;
@@ -36,6 +39,7 @@ public class SSH_PlayerMove : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         wm = GetComponent<SSH_WebMove>();
+        cpr = GetComponentInChildren<SSH_CamPivotRotate>();
     }
 
     // Update is called once per frame
@@ -65,6 +69,7 @@ public class SSH_PlayerMove : MonoBehaviour
         if (isJumping && Input.GetKey(KeyCode.E))
         {
             moveState = MoveState.Webbing;
+            transform.forward = body.forward;
         }
     }
 
@@ -73,8 +78,9 @@ public class SSH_PlayerMove : MonoBehaviour
         PlayerRotate(MoveState.Webbing);
         InputManage(MoveState.Webbing);
         Jump();
+        dir.y = 0;
 
-        if (isJumping)
+        if (isJumping && Input.GetKey(KeyCode.E))
             wm.isWebMove = true;
         else
         {
@@ -82,9 +88,24 @@ public class SSH_PlayerMove : MonoBehaviour
         }
     }
 
+    float webSwingingTime = 0;
     void Movement()
     {
-        rb.velocity = dir * walkSpeed;
+        float speed = walkSpeed;
+
+        if (!wm.isWebMove)
+        {
+            speed = walkSpeed;
+            webSwingingTime = 0;
+        }
+        else if (wm.isWebMove)
+        {
+            webSwingingTime += Time.deltaTime;
+            speed = walkSpeed * (1 + webSwingingTime);
+        }
+
+        rb.velocity = dir * speed;
+        print(speed);
     }
 
     void PlayerRotate(MoveState movestate)
@@ -95,7 +116,7 @@ public class SSH_PlayerMove : MonoBehaviour
 
             Vector3 playerForward = camPivot.forward;
             playerForward.y = 0;
-
+            
             body.forward = playerForward;
         }
         else if (moveState == MoveState.Webbing)
@@ -104,6 +125,10 @@ public class SSH_PlayerMove : MonoBehaviour
                 transform.up = Vector3.Lerp(transform.up, wm.webDir, Time.deltaTime);
             else
                 transform.up = Vector3.Lerp(transform.up, Vector3.up, Time.deltaTime * 5);
+            
+            float mouseX = Input.GetAxisRaw("Mouse X") * cpr.sensX * Time.deltaTime;
+            yRotation += cpr.yRot;
+            body.localEulerAngles = new Vector3(0, cpr.yRot, 0);
         }
     }
 
@@ -129,7 +154,7 @@ public class SSH_PlayerMove : MonoBehaviour
     void Jump()
     {
         yVelocity += gravity * Time.deltaTime;
-        if (!isJumping)
+        if (!isJumping || wm.isWebMove)
         {
             yVelocity = 0;
         }

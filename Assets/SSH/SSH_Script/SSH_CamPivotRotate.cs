@@ -9,6 +9,11 @@ public class SSH_CamPivotRotate : MonoBehaviour
 
     float xRotation;
     float yRotation;
+    public float yRot
+    {
+        get { return yRotation; }
+    }
+
 
     void Start()
     {
