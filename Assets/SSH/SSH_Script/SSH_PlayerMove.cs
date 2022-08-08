@@ -12,6 +12,8 @@ public class SSH_PlayerMove : MonoBehaviour
     Rigidbody rb;
     SSH_SpiderMove spiderMovement;
     SSH_CamPivotRotate cpr;
+    LineRenderer line;
+
     float yRotation;
     public Transform camDir;
 
@@ -34,6 +36,8 @@ public class SSH_PlayerMove : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         spiderMovement = GetComponent<SSH_SpiderMove>();
         cpr = GetComponentInChildren<SSH_CamPivotRotate>();
+        line = GetComponent<LineRenderer>();
+        line.positionCount = 2;
     }
 
     void Update()
@@ -47,7 +51,10 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             Movement();
             if (Input.GetKey(KeyCode.E))
+            {
                 state = PlayerState.Webbing;
+                yRotation = transform.eulerAngles.y;
+            }
         }
         else if (state == PlayerState.Webbing)
         {
@@ -72,39 +79,54 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             Vector3 webDir = hook.position - rightHand.position;
             float webLen = Vector3.Distance(rightHand.position, hook.position);
+            print(webLen);
 
             Ray web = new Ray(rightHand.position, webDir);
             Debug.DrawRay(web.origin, web.direction * webLen, Color.white);
+            line.enabled = true;
+            line.startColor = Color.white;
+            line.endColor = Color.blue;
+            line.SetPosition(0, rightHand.position);
 
             RaycastHit pivot;
-            if (Physics.Raycast(web, out pivot, webLen))
+
+            if (Physics.Raycast(web, out pivot, webLen * 2))
             {
                 Debug.DrawRay(transform.position, transform.up * webLen, Color.red);
+                line.SetPosition(1, pivot.point);
                 // ∞≈πÃ¡Ÿ 
-                transform.up = web.direction;
+                transform.up = Vector3.Lerp(transform.up, web.direction, Time.deltaTime * 5);
 
                 float mouseX = Input.GetAxisRaw("Mouse X") * cpr.sensX * Time.deltaTime;
                 yRotation += mouseX;
                 body.localEulerAngles = new Vector3(0, yRotation, 0);
 
-                //float theta = Vector3.Angle(-transform.up, Vector3.down);
+                //Vector3 webSwingRotataion = new Vector3(0, yRotation, 0);
+                //body.localEulerAngles = Vector3.Lerp(body.localEulerAngles, webSwingRotataion, Time.deltaTime * 10);
+
+                
                 //dir = transform.forward + transform.up;
-                //float speed = gravity * Mathf.Sin(theta * Mathf.Deg2Rad);
+                
 
                 //float v = Input.GetAxisRaw("Vertical");
 
+                dir = body.forward;
+
                 //dir = transform.forward * v + transform.up;
-                //dir.Normalize();
             }
         }
+        //Jump();
 
-        Jump();
+        //float theta = Vector3.Angle(-transform.up, Vector3.down);
+        //float webSwingSpeed = yVelocity * Mathf.Sin(theta * Mathf.Deg2Rad);
 
-        rb.velocity = dir * walkSpeed;
+        dir.Normalize();
+        //rb.velocity = dir * 10;
 
         if (Input.GetKeyUp(KeyCode.E))
         {
             transform.up = Vector3.up;
+            line.enabled = false;
         }
     }
 
