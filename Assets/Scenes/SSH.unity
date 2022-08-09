@@ -347,6 +347,7 @@ GameObject:
   m_Component:
   - component: {fileID: 586130503}
   - component: {fileID: 586130505}
+  - component: {fileID: 586130504}
   m_Layer: 0
   m_Name: CamPivot
   m_TagString: Untagged
@@ -370,6 +371,19 @@ Transform:
   m_Father: {fileID: 955057061}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &586130504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586130501}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd364b04eec3c2d45a7ecd85c2af2c53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 545751763}
 --- !u!114 &586130505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384,8 +398,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sensX: 250
   sensY: 250
-  xRotation: 0
-  yRotation: 0
 --- !u!1 &642016278
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,10 +832,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 10
-  dir: {x: 0, y: 0, z: 0}
-  rb: {fileID: 0}
   camDir: {fileID: 586130503}
-  gravity: -9.81
   yVelocity: 0
   jumpPower: 5
   isJumping: 0
