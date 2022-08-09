@@ -78,10 +78,12 @@ public class SSH_PlayerMove : MonoBehaviour
         PlayerRotate(MoveState.Webbing);
         InputManage(MoveState.Webbing);
         Jump();
-        dir.y = 0;
-
+        //dir.y = 0;
+        dir = body.forward;
         if (isJumping && Input.GetKey(KeyCode.E))
+        { 
             wm.isWebMove = true;
+        }
         else
         {
             moveState = MoveState.Normal;
@@ -101,11 +103,11 @@ public class SSH_PlayerMove : MonoBehaviour
         else if (wm.isWebMove)
         {
             webSwingingTime += Time.deltaTime;
-            speed = walkSpeed * (1 + webSwingingTime);
+            speed = walkSpeed * (3 + webSwingingTime);
         }
 
         rb.velocity = dir * speed;
-        print(speed);
+        //print(speed);
     }
 
     void PlayerRotate(MoveState movestate)
@@ -153,16 +155,18 @@ public class SSH_PlayerMove : MonoBehaviour
     
     void Jump()
     {
+        IsJumping();
+
         yVelocity += gravity * Time.deltaTime;
         if (!isJumping || wm.isWebMove)
         {
             yVelocity = 0;
         }
-        IsJumping();
 
-        if (Input.GetButtonDown("Jump") && !isJumping)
+        if (Input.GetButtonDown("Jump") && (!isJumping || wm.isWebMove))
         {
             yVelocity = jumpPower;
+            print(1);
             isJumping = true;
         }
 

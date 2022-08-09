@@ -35,12 +35,10 @@ public class SSH_WebMove : MonoBehaviour
             {
                 RaycastHit hit;
                 ShootWeb(rightHand.position, hook.position, out webDir, out hit);
-                //print(webDir + ", " +  hit.distance);
             }
         }
         else if (Input.GetKeyUp(KeyCode.E))
             line.enabled = false;
-
     }
 
     public void ShootWeb(Vector3 start, Vector3 end, out Vector3 webDir, out RaycastHit hit)
@@ -57,6 +55,7 @@ public class SSH_WebMove : MonoBehaviour
             Debug.DrawRay(transform.position, transform.up * webLen, Color.red);
             line.SetPosition(1, hit.point);
         }
+        print(hit.distance);
 
         line.enabled = true;
     }
