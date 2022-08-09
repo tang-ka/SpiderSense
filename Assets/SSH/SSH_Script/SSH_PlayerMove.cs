@@ -103,7 +103,7 @@ public class SSH_PlayerMove : MonoBehaviour
         else if (wm.isWebMove)
         {
             webSwingingTime += Time.deltaTime;
-            speed = walkSpeed * (3 + webSwingingTime);
+            speed = walkSpeed * (3 + webSwingingTime * 2);
         }
 
         rb.velocity = dir * speed;

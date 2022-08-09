@@ -7,7 +7,10 @@ public class SSH_WebMove : MonoBehaviour
     LineRenderer line;
     public Transform rightHand;
     public Transform leftHand;
-    public Transform hook;
+    public Transform[] hook;
+
+    int hookCount = 0;
+
     public Vector3 webDir;
 
     public bool isWebMove = false;
@@ -29,16 +32,19 @@ public class SSH_WebMove : MonoBehaviour
             if (isWebMove == false) 
             {
                 RaycastHit hit;
-                ShootWeb(rightHand.position, hook.position, out webDir, out hit);
+                ShootWeb(rightHand.position, hook[hookCount].position, out webDir, out hit);
             }
             else
             {
                 RaycastHit hit;
-                ShootWeb(rightHand.position, hook.position, out webDir, out hit);
+                ShootWeb(rightHand.position, hook[hookCount].position, out webDir, out hit);
             }
         }
         else if (Input.GetKeyUp(KeyCode.E))
+        {
             line.enabled = false;
+            hookCount++;
+        }
     }
 
     public void ShootWeb(Vector3 start, Vector3 end, out Vector3 webDir, out RaycastHit hit)
