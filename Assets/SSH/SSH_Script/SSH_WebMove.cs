@@ -61,7 +61,6 @@ public class SSH_WebMove : MonoBehaviour
             Debug.DrawRay(transform.position, transform.up * webLen, Color.red);
             line.SetPosition(1, hit.point);
         }
-        print(hit.distance);
 
         line.enabled = true;
     }

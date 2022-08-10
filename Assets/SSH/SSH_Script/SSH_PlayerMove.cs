@@ -61,7 +61,6 @@ public class SSH_PlayerMove : MonoBehaviour
 
     private void NormalMove()
     {
-        wm.isWebMove = false;
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
         Jump();
@@ -69,6 +68,7 @@ public class SSH_PlayerMove : MonoBehaviour
         if (isJumping && Input.GetKey(KeyCode.E))
         {
             moveState = MoveState.Webbing;
+            wm.isWebMove = true;
             transform.forward = body.forward;
         }
     }
@@ -80,53 +80,86 @@ public class SSH_PlayerMove : MonoBehaviour
         Jump();
         //dir.y = 0;
         dir = body.forward;
-        if (isJumping && Input.GetKey(KeyCode.E))
-        { 
-            wm.isWebMove = true;
-        }
-        else
+        // 웹무브 시작!
+        //if (isJumping && Input.GetKey(KeyCode.E))
+        //{ 
+        //    wm.isWebMove = true;
+        //}
+        if (!isJumping || Input.GetKeyUp(KeyCode.E))
         {
             moveState = MoveState.Normal;
+            wm.isWebMove = false;
+            webSwingEndVelocity = rb.velocity;
         }
     }
 
+    float speed;
     float webSwingingTime = 0;
+    float webSwingStartSpeed = 0;
+    Vector3 webSwingEndVelocity;
+    Vector3 inertiaVelocity;
+    bool startFlag = false;
+
     void Movement()
     {
-        float speed = walkSpeed;
-
         if (!wm.isWebMove)
         {
+            startFlag = true;
             speed = walkSpeed;
             webSwingingTime = 0;
         }
         else if (wm.isWebMove)
         {
+            // 시작할때 한번 속력을 받고 싶다.
+            if (startFlag)
+            {
+                webSwingStartSpeed = Math.Clamp(rb.velocity.magnitude, walkSpeed, sprintSpeed);
+                startFlag = false;
+            }
             webSwingingTime += Time.deltaTime;
-            speed = walkSpeed * (3 + webSwingingTime * 2);
+            //speed = Mathf.Lerp(webSwingStartSpeed, 3 * webSwingStartSpeed, Time.deltaTime);
+            speed = webSwingStartSpeed * (2 + webSwingingTime * 2);
         }
+        
+        // 웹스윙이 끝났을때의 속도를 받고 싶다.
+        if (webSwingEndVelocity.magnitude < 0.1f)
+            webSwingEndVelocity = Vector3.zero;
+        else
+        {
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 5);
+        }
+        
+        inertiaVelocity = webSwingEndVelocity;
 
-        rb.velocity = dir * speed;
+        rb.velocity = dir * speed + inertiaVelocity;
         //print(speed);
     }
 
+    Vector3 playerForward;
     void PlayerRotate(MoveState movestate)
     {
+        // 거미줄 끝나고 그 방향이 지속이 안됨
+        
         if (moveState == MoveState.Normal)
         {
-            transform.up = Vector3.Lerp(transform.up, Vector3.up, Time.deltaTime * 5);
+            //  거미줄 쳤을 때
+            if ((transform.up - Vector3.up).magnitude > 0.1f)
+            { 
+                transform.up = Vector3.Lerp(transform.up, Vector3.up, Time.deltaTime * 10);
+            }
+            //평상시 걸어 다닐 때
+            else
+            {
+                playerForward = camPivot.forward;
+                playerForward.y = 0;
+                body.forward = playerForward;
+            }
 
-            Vector3 playerForward = camPivot.forward;
-            playerForward.y = 0;
-            
-            body.forward = playerForward;
         }
         else if (moveState == MoveState.Webbing)
         {
             if (Input.GetKey(KeyCode.E))
                 transform.up = Vector3.Lerp(transform.up, wm.webDir, Time.deltaTime);
-            else
-                transform.up = Vector3.Lerp(transform.up, Vector3.up, Time.deltaTime * 5);
             
             float mouseX = Input.GetAxisRaw("Mouse X") * cpr.sensX * Time.deltaTime;
             yRotation += cpr.yRot;
