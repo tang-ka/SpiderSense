@@ -6,6 +6,12 @@ using UnityEngine;
 // 1. 일반적인 입력을 받아 이동하고 싶다.
 public class SSH_PlayerMove : MonoBehaviour
 {
+    public static SSH_PlayerMove Instance;
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     public float walkSpeed = 8;
     public float runSpeed = 10;
     public float sprintSpeed = 15;
@@ -65,6 +71,7 @@ public class SSH_PlayerMove : MonoBehaviour
         InputManage(MoveState.Normal);
         Jump();
 
+        // 웹무브 시작!
         if (isJumping && Input.GetKey(KeyCode.E))
         {
             moveState = MoveState.Webbing;
@@ -80,11 +87,7 @@ public class SSH_PlayerMove : MonoBehaviour
         Jump();
         //dir.y = 0;
         dir = body.forward;
-        // 웹무브 시작!
-        //if (isJumping && Input.GetKey(KeyCode.E))
-        //{ 
-        //    wm.isWebMove = true;
-        //}
+        
         if (!isJumping || Input.GetKeyUp(KeyCode.E))
         {
             moveState = MoveState.Normal;
@@ -126,7 +129,7 @@ public class SSH_PlayerMove : MonoBehaviour
             webSwingEndVelocity = Vector3.zero;
         else
         {
-            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 5);
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 3);
         }
         
         inertiaVelocity = webSwingEndVelocity;
@@ -159,7 +162,7 @@ public class SSH_PlayerMove : MonoBehaviour
         else if (moveState == MoveState.Webbing)
         {
             if (Input.GetKey(KeyCode.E))
-                transform.up = Vector3.Lerp(transform.up, wm.webDir, Time.deltaTime);
+                transform.up = Vector3.Lerp(transform.up, wm.webDir, Time.deltaTime * 0.1f);
             
             float mouseX = Input.GetAxisRaw("Mouse X") * cpr.sensX * Time.deltaTime;
             yRotation += cpr.yRot;
