@@ -26,19 +26,18 @@ public class SSH_PlayerMove : MonoBehaviour
     float yRotation;
 
     float gravity = -9.81f;
-    public float yVelocity = 0;
+    private float yVelocity = 0;
     public float jumpPower = 5f;
-    public bool isJumping;
-    float jumpRayLen = 1.2f;
+    //private bool isJumping;
+    float jumpRayLen = 1.3f;
 
-    #region MoveState
-    public enum MoveState
-    {
-        Normal,
-        Webbing
-    }
-    public MoveState moveState = MoveState.Normal;
-    #endregion
+    float speed;
+    float webSwingingTime = 0;
+    float webSwingStartSpeed = 0;
+    Vector3 webSwingEndVelocity;
+    Vector3 inertiaVelocity;
+    public float webJumpFactor = 3;
+    bool startFlag = false;
 
     // Start is called before the first frame update
     void Start()
@@ -48,70 +47,173 @@ public class SSH_PlayerMove : MonoBehaviour
         cpr = GetComponentInChildren<SSH_CamPivotRotate>();
     }
 
+    #region MoveState
+    public enum MoveState
+    {
+        Normal,
+        Floating,
+        WebSwing,
+        WebZip,
+        PointWebZip,
+        PointLaunch,
+        WallRunVertical,
+        WallRunHorizontal,
+    }
+    public MoveState moveState = MoveState.Normal;
+    #endregion
+
     // Update is called once per frame
     void Update()
     {
         switch (moveState)
         {
             case MoveState.Normal:
-                NormalMove();
+                Normal();
                 break;
 
-            case MoveState.Webbing:
-                WebMove();
+            case MoveState.Floating:
+                Floating();
+                break;
+
+            case MoveState.WebSwing:
+                WebSwing();
+                break;
+
+            case MoveState.PointWebZip:
+                PointWebZip();
+                break;
+
+            case MoveState.PointLaunch:
+                PointLaunch();
+                break;
+
+            case MoveState.WallRunVertical:
+                WallRunVertical();
+                break;
+
+            case MoveState.WallRunHorizontal:
+                WallRunHorizontal();
                 break;
         }
 
         Movement();
     }
 
-    private void NormalMove()
+    float currentTime;
+    public float offsetTime = 1;
+    float webJumpForce = 500;
+    bool isWebJump = false;
+    /******************************** State Method ***********************************/
+    private void Normal()
     {
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
-        Jump();
+        Jump(MoveState.Normal);
 
-        // 웹무브 시작!
-        if (isJumping && Input.GetKey(KeyCode.E))
+        // 점프하면 Floating 상태로 전환하고 싶다. 
+        if (IsJumping())
         {
-            moveState = MoveState.Webbing;
-            wm.isWebMove = true;
-            transform.forward = body.forward;
+            moveState = MoveState.Floating;
         }
     }
 
-    private void WebMove()
+    private void Floating()
     {
-        PlayerRotate(MoveState.Webbing);
-        InputManage(MoveState.Webbing);
-        Jump();
-        //dir.y = 0;
-        dir = body.forward;
-        
-        if (!isJumping || Input.GetKeyUp(KeyCode.E))
+        PlayerRotate(MoveState.Normal);
+        InputManage(MoveState.Normal);
+        Jump(MoveState.Floating);
+
+        // 웹스윙 시작!
+        if (!IsJumping())
         {
             moveState = MoveState.Normal;
-            wm.isWebMove = false;
-            webSwingEndVelocity = rb.velocity;
+        }
+        else if (Input.GetKeyDown(KeyCode.E))
+        {
+            wm.isGoWebSwing = true;
+            moveState = MoveState.WebSwing;
+            transform.forward = body.forward;
+        }
+        // Web Zip 시작
+        else if (Input.GetButtonDown("Jump"))
+        {
+            wm.isGoWebZip = true;
         }
     }
 
-    float speed;
-    float webSwingingTime = 0;
-    float webSwingStartSpeed = 0;
-    Vector3 webSwingEndVelocity;
-    Vector3 inertiaVelocity;
-    bool startFlag = false;
+    private void WebSwing()
+    {
+        PlayerRotate(MoveState.WebSwing);
+        InputManage(MoveState.WebSwing);
+        Jump(MoveState.WebSwing);
+        dir = body.forward;
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            wm.isClickE = false;
+            wm.isGoWebSwing = false;
+            moveState = MoveState.Floating;
+            webSwingEndVelocity = rb.velocity * webJumpFactor;
+            isWebJump = true;
+        }
+        if (Input.GetKeyUp(KeyCode.E))
+        {
+            yVelocity = 0;
+            wm.isGoWebSwing = false;
+            moveState = MoveState.Floating;
+            webSwingEndVelocity = rb.velocity;
+        }
+
+
+    }
+
+    private void WebZip()
+    {
+        print("Web Zip!!!");
+        currentTime += Time.deltaTime;
+        if (currentTime > 1)
+        {
+            wm.isGoWebSwing = false;
+            moveState = MoveState.Floating;
+        }
+    }
+
+    private void PointWebZip()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void PointLaunch()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void WallRunVertical()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void WallRunHorizontal()
+    {
+        throw new NotImplementedException();
+    }
+    /*********************************************************************************/
 
     void Movement()
     {
-        if (!wm.isWebMove)
+        if (moveState == MoveState.Normal)
+        {
+            startFlag = true;
+            speed = walkSpeed;
+            webSwingEndVelocity /= 1.5f; // 마찰력 + 정지하려는 힘 -> 관성 확 줄이기
+        }
+        else if (moveState == MoveState.Floating)
         {
             startFlag = true;
             speed = walkSpeed;
             webSwingingTime = 0;
         }
-        else if (wm.isWebMove)
+        else if (moveState == MoveState.WebSwing)
         {
             // 시작할때 한번 속력을 받고 싶다.
             if (startFlag)
@@ -120,30 +222,33 @@ public class SSH_PlayerMove : MonoBehaviour
                 startFlag = false;
             }
             webSwingingTime += Time.deltaTime;
-            //speed = Mathf.Lerp(webSwingStartSpeed, 3 * webSwingStartSpeed, Time.deltaTime);
             speed = webSwingStartSpeed * (2 + webSwingingTime * 2);
         }
         
         // 웹스윙이 끝났을때의 속도를 받고 싶다.
         if (webSwingEndVelocity.magnitude < 0.1f)
+        {
             webSwingEndVelocity = Vector3.zero;
+            isWebJump = false;
+        }
+        else if (isWebJump)
+        {
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 1.5f);
+        }
         else
         {
-            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 3);
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 4);
         }
-        
+
         inertiaVelocity = webSwingEndVelocity;
 
         rb.velocity = dir * speed + inertiaVelocity;
-        //print(speed);
     }
 
     Vector3 playerForward;
-    void PlayerRotate(MoveState movestate)
+    void PlayerRotate(MoveState state)
     {
-        // 거미줄 끝나고 그 방향이 지속이 안됨
-        
-        if (moveState == MoveState.Normal)
+        if (state == MoveState.Normal)
         {
             //  거미줄 쳤을 때
             if ((transform.up - Vector3.up).magnitude > 0.1f)
@@ -157,12 +262,11 @@ public class SSH_PlayerMove : MonoBehaviour
                 playerForward.y = 0;
                 body.forward = playerForward;
             }
-
         }
-        else if (moveState == MoveState.Webbing)
+        else if (state == MoveState.WebSwing)
         {
             if (Input.GetKey(KeyCode.E))
-                transform.up = Vector3.Lerp(transform.up, wm.webDir, Time.deltaTime * 0.1f);
+                transform.up = Vector3.Lerp(transform.up, wm.webDir, Time.deltaTime * 0.3f);
             
             float mouseX = Input.GetAxisRaw("Mouse X") * cpr.sensX * Time.deltaTime;
             yRotation += cpr.yRot;
@@ -170,9 +274,9 @@ public class SSH_PlayerMove : MonoBehaviour
         }
     }
 
-    void InputManage(MoveState movestate)
+    void InputManage(MoveState state)
     {
-        if (moveState == MoveState.Normal)
+        if (state == MoveState.Normal)
         {
             float v = Input.GetAxisRaw("Vertical");
             float h = Input.GetAxisRaw("Horizontal");
@@ -180,7 +284,7 @@ public class SSH_PlayerMove : MonoBehaviour
             dir = body.forward * v + body.right * h;
             dir.Normalize();
         }
-        else if (moveState == MoveState.Webbing)
+        else if (state == MoveState.WebSwing)
         {
             float v = Input.GetAxisRaw("Vertical");
 
@@ -189,27 +293,31 @@ public class SSH_PlayerMove : MonoBehaviour
         }
     }
     
-    void Jump()
+    void Jump(MoveState state)
     {
-        IsJumping();
+        if (state == MoveState.Normal)
+        {
+            yVelocity = 0;
 
-        yVelocity += gravity * Time.deltaTime;
-        if (!isJumping || wm.isWebMove)
+            if (Input.GetButtonDown("Jump"))
+            {
+                yVelocity = jumpPower;
+            }
+        }
+        else if (state == MoveState.Floating)
+        {
+            yVelocity += gravity * Time.deltaTime;
+        }
+        else if (state == MoveState.WebSwing)
         {
             yVelocity = 0;
         }
 
-        if (Input.GetButtonDown("Jump") && (!isJumping || wm.isWebMove))
-        {
-            yVelocity = jumpPower;
-            print(1);
-            isJumping = true;
-        }
-
         dir.y = yVelocity;
+        //print(yVelocity);
     }
 
-    void IsJumping()
+    public bool IsJumping()
     {
         Ray ray = new Ray(body.position, -body.up);
         RaycastHit hitInfo;
@@ -218,11 +326,11 @@ public class SSH_PlayerMove : MonoBehaviour
         if (Physics.Raycast(ray, out hitInfo))
         {
             if (hitInfo.distance < jumpRayLen && yVelocity <= 0)
-                isJumping = false;
+                return false;
             else
-                isJumping = true;
+                return true;
         }
         else
-            isJumping = true;
+            return true;
     }
 }
