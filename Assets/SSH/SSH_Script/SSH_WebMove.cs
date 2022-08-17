@@ -24,6 +24,8 @@ public class SSH_WebMove : MonoBehaviour
     public float keyDelayTime = 0.2f;
     public float deadLineTime = 0.5f;
 
+    public bool webZipFlag = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -45,6 +47,8 @@ public class SSH_WebMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        RaycastHit hitTest;
+        bool test = RayForDetection(out hitTest);
         KeyClickManager();
 
         if (isGoWebSwing)
@@ -61,16 +65,15 @@ public class SSH_WebMove : MonoBehaviour
         else if (isGoWebZip)
         {
             isFinishSkill = false;
-            print(1);
             RaycastHit hit;
-            if (RayForDetection(out hit))
+            if (RayForDetection(out hit) && webZipFlag)
             {
-                print(2);
                 ShootWeb(rightHand.position, hit.point, out webDir, out hit);
+                webZipFlag = false;
             }
-            print(3);
         }
-        else if (isGoPointWebZip)
+        
+        if (isGoPointWebZip)
         {
             isFinishSkill = false;
             RaycastHit hitL, hitR;
@@ -88,7 +91,6 @@ public class SSH_WebMove : MonoBehaviour
             rightLine.enabled = false;
             leftLine.enabled = false;
         }
-        
     }
 
     void KeyClickManager()
@@ -158,12 +160,26 @@ public class SSH_WebMove : MonoBehaviour
                     Debug.DrawLine(rayR.origin, hitInfoR.point, Color.blue);
                     dirR = hitInfoR.point - rayR.origin;
                     //print("Right : " + i);
+
+                    if (hitInfoR.collider.CompareTag("Wall"))
+                    {
+                        //print("오른쪽 벽 발견!!");
+                        hit = hitInfoR;
+                        return true;
+                    }
                 }
                 if (Physics.Raycast(rayL, out hitInfoL, detectionRange))
                 {
                     Debug.DrawLine(rayL.origin, hitInfoL.point, Color.blue);
                     dirL = hitInfoL.point - rayL.origin;
                     //print("Left : " + i);
+
+                    if (hitInfoL.collider.CompareTag("Wall"))
+                    {
+                        //print("왼쪽 벽 발견!!");
+                        hit = hitInfoL;
+                        return true;
+                    }
                 }
             }
             else
@@ -176,6 +192,13 @@ public class SSH_WebMove : MonoBehaviour
                     Debug.DrawLine(rayR.origin, hitInfoR.point, Color.blue);
                     dirR = dirL = hitInfoR.point - rayR.origin;
                     hitInfoL = hitInfoR;
+
+                    if (hitInfoR.collider.CompareTag("Wall"))
+                    {
+                        //print("정면 벽 발견!!");
+                        hit = hitInfoR;
+                        return true;
+                    }
                 }
                 else
                 {
@@ -197,18 +220,18 @@ public class SSH_WebMove : MonoBehaviour
             //    break;
             //}
 
-            if (hitInfoR.collider.CompareTag("Wall"))
-            {
-                print("오른쪽 벽 발견!!");
-                hit = hitInfoR;
-                return true;
-            }
-            else if (hitInfoL.collider.CompareTag("Wall"))
-            {
-                print("왼쪽 벽 발견!!");
-                hit = hitInfoL;
-                return true;
-            }
+            //if (hitInfoR.collider.CompareTag("Wall"))
+            //{
+            //    //print("오른쪽 벽 발견!!");
+            //    hit = hitInfoR;
+            //    return true;
+            //}
+            //else if (hitInfoL.collider.CompareTag("Wall"))
+            //{
+            //    //print("왼쪽 벽 발견!!");
+            //    hit = hitInfoL;
+            //    return true;
+            //}
         }
 
         rayR = new Ray(Camera.main.transform.position, -Camera.main.transform.up);
