@@ -79,6 +79,10 @@ public class SSH_PlayerMove : MonoBehaviour
                 WebSwing();
                 break;
 
+            case MoveState.WebZip:
+                WebZip();
+                break;
+
             case MoveState.PointWebZip:
                 PointWebZip();
                 break;
@@ -138,6 +142,7 @@ public class SSH_PlayerMove : MonoBehaviour
         else if (Input.GetButtonDown("Jump"))
         {
             wm.isGoWebZip = true;
+            moveState = MoveState.WebZip;
         }
     }
 
@@ -163,18 +168,22 @@ public class SSH_PlayerMove : MonoBehaviour
             moveState = MoveState.Floating;
             webSwingEndVelocity = rb.velocity;
         }
-
-
     }
 
     private void WebZip()
-    {
-        print("Web Zip!!!");
+    { 
+        // Web Zip ½ÃÀÛ
         currentTime += Time.deltaTime;
-        if (currentTime > 1)
+
+        rb.AddForce(body.transform.forward * 20, ForceMode.Impulse);
+        // Web Zip ³¡
+        if (currentTime > 0.5f)
         {
-            wm.isGoWebSwing = false;
+            wm.isGoWebZip = false;
+            wm.isFinishSkill = true;
             moveState = MoveState.Floating;
+            webSwingEndVelocity = rb.velocity;
+            currentTime = 0;
         }
     }
 
@@ -237,7 +246,7 @@ public class SSH_PlayerMove : MonoBehaviour
         }
         else
         {
-            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 4);
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 1);
         }
 
         inertiaVelocity = webSwingEndVelocity;

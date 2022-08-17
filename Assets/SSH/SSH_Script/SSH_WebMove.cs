@@ -40,9 +40,9 @@ public class SSH_WebMove : MonoBehaviour
         //leftLine.endColor = Color.blue;
     }
 
-    [HideInInspector]
     public bool isClickE;
-    bool isClickLShift;
+    public bool isClickLShift;
+    public bool isFinishSkill = false;
     // Update is called once per frame
     void Update()
     {
@@ -50,44 +50,37 @@ public class SSH_WebMove : MonoBehaviour
 
         if (isClickE)
         {
-            currentTime += Time.deltaTime;
-
             if (isGoWebSwing)
             {
+                isFinishSkill = false;
                 RaycastHit hit;
                 ShootWeb(rightHand.position, hook[hookCount].position, out webDir, out hit);
             }
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                print("Web Jump");
-            }
         }
-        else if (!isClickE)
-        {
-            rightLine.enabled = false;
-        }
-        if (Input.GetKeyUp(KeyCode.E))
+        else if (Input.GetKeyUp(KeyCode.E))
         {
             hookCount++;
         }
-
-        if (isGoWebZip)
+        else if (isGoWebZip)
         {
+            isFinishSkill = false;
             RaycastHit hitL, hitR;
             ShootWeb(rightHand.position, hook[hookCount].position, out webDir, out hitR);
             ShootWeb(leftHand.position, hook[hookCount].position, out webDir, out hitL);
-        }
-        else if (!isGoWebZip)
-        {
-            rightLine.enabled = false;
-            leftLine.enabled = false;
+            
         }
 
         //if ((Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.E)) || (Input.GetKey(KeyCode.E) && Input.GetKeyDown(KeyCode.LeftShift)))
         //{
         //    print("Point Web Zip");
         //}
+
+        if (isFinishSkill)
+        {
+            rightLine.enabled = false;
+            leftLine.enabled = false;
+            print(2);
+        }
     }
 
     void KeyClickManager()
@@ -99,6 +92,7 @@ public class SSH_WebMove : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.E))
         {
             isClickE = false;
+            isFinishSkill = true;
             currentTime = 0;
         }
     }
