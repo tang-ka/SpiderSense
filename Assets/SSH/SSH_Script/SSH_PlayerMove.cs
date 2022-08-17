@@ -39,6 +39,8 @@ public class SSH_PlayerMove : MonoBehaviour
     public float webJumpFactor = 3;
     bool startFlag = false;
 
+    float webZipFactor = 20;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -99,7 +101,6 @@ public class SSH_PlayerMove : MonoBehaviour
                 WallRunHorizontal();
                 break;
         }
-
         Movement();
     }
 
@@ -141,8 +142,10 @@ public class SSH_PlayerMove : MonoBehaviour
         // Web Zip 시작
         else if (Input.GetButtonDown("Jump"))
         {
+            print("두번 점프 하는거다");
             wm.isGoWebZip = true;
             moveState = MoveState.WebZip;
+            //webSwingEndVelocity = (transform.forward + Vector3.up * 0.5f) * webZipFactor;
         }
     }
 
@@ -170,12 +173,20 @@ public class SSH_PlayerMove : MonoBehaviour
         }
     }
 
+    bool flag = false;
     private void WebZip()
-    { 
+    {
+        PlayerRotate(MoveState.Normal);
         // Web Zip 시작
         currentTime += Time.deltaTime;
+        flag = true;
 
-        rb.AddForce(body.transform.forward * 20, ForceMode.Impulse);
+        if (flag)
+        {
+            rb.AddForce((body.forward + body.up * 0.5f) * webZipFactor, ForceMode.Impulse);
+            flag = false;
+        }
+
         // Web Zip 끝
         if (currentTime > 0.5f)
         {
@@ -184,6 +195,7 @@ public class SSH_PlayerMove : MonoBehaviour
             moveState = MoveState.Floating;
             webSwingEndVelocity = rb.velocity;
             currentTime = 0;
+
         }
     }
 
@@ -246,7 +258,7 @@ public class SSH_PlayerMove : MonoBehaviour
         }
         else
         {
-            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 1);
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime);
         }
 
         inertiaVelocity = webSwingEndVelocity;
@@ -342,4 +354,4 @@ public class SSH_PlayerMove : MonoBehaviour
         else
             return true;
     }
-}
+}   
