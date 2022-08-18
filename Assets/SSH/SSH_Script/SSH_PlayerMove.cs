@@ -39,7 +39,7 @@ public class SSH_PlayerMove : MonoBehaviour
     public float webJumpFactor = 3;
     bool startFlag = false;
 
-    float webZipFactor = 15;
+    float webZipFactor = 50;
 
     // Start is called before the first frame update
     void Start()
@@ -186,30 +186,19 @@ public class SSH_PlayerMove : MonoBehaviour
         Vector3 webZipDir = body.forward + body.up * 0.5f;
         webZipDir.Normalize();
 
-        rb.AddForce(webZipDir * webZipFactor, ForceMode.Impulse);
-        print(rb.velocity);
+        rb.velocity = webZipDir * 50;
+        //rb.AddForce(webZipDir * 2500);
+        print(webZipDir + ", " + rb.velocity + ", " + rb.velocity.magnitude);
 
-        if (currentTime > 0.48f)
+        // Web Zip 끝
+        if (currentTime > 0.5f)
         {
-            if (velocityFlag && rb.velocity.normalized != Vector3.up && rb.velocity.magnitude > 50)
-            {
-                webSwingEndVelocity = rb.velocity;
-                velocityFlag = false;
-                //if (webSwingEndVelocity.magnitude < 50)
-                //{
-                //    webSwingEndVelocity = rb.velocity.normalized * 100;
-                //}
-                //print(webSwingEndVelocity + "\t" + webSwingEndVelocity.magnitude);
-            }
-            // Web Zip 끝
-            if (currentTime > 0.5f)
-            {
-                wm.isGoWebZip = false;
-                wm.isFinishSkill = true;
-                moveState = MoveState.Floating;
-                
-                currentTime = 0;
-            }
+            wm.isGoWebZip = false;
+            wm.isFinishSkill = true;
+            moveState = MoveState.Floating;
+            webSwingEndVelocity = rb.velocity;
+
+            currentTime = 0;
         }
         // -> 현재 문제 rb.velocity값이 왔다갔다함. (정상값, (0, 1, 0)의 스케일값, 크기가 작은 값)
     }
@@ -279,8 +268,8 @@ public class SSH_PlayerMove : MonoBehaviour
         inertiaVelocity = webSwingEndVelocity;
 
         //print(inertiaVelocity);
-
-        rb.velocity = dir * speed + inertiaVelocity;
+        if (moveState != MoveState.WebZip)
+            rb.velocity = dir * speed + inertiaVelocity;
     }
 
     Vector3 playerForward;
