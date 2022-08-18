@@ -7,6 +7,8 @@ using UnityEngine;
 public class SB_Jet : MonoBehaviour
 {
     public Transform target;
+
+    #region 상태정의
     public enum EnemyState
     {
         Idle,
@@ -19,6 +21,7 @@ public class SB_Jet : MonoBehaviour
     };
 
     public EnemyState e_state = EnemyState.Idle; //초기값을 Idle로 셋팅했다
+    #endregion
 
     // Start is called before the first frame update
     void Start()
@@ -59,15 +62,16 @@ public class SB_Jet : MonoBehaviour
         }
     }
 
-    
+
 
 
 
     // 타겟이 일정거리에 들어오면 Idle상태에서 Move로 전환된다.
+    #region Idle 속성
     // 필요속성 : 거리 -> 타겟과의 거리, 감지 거리
     float distance;  //계속 이동하는 중
     public float moveDistance = 40; // 감지 거리 
-
+    #endregion
 
     //필요속성 : 감지거리 (정해진 - Move > Idle)
 
@@ -108,27 +112,7 @@ public class SB_Jet : MonoBehaviour
 
     private void RandomMove()
     {
-        //curTime += Time.deltaTime;
-        //// 1. 오른쪽으로 가고 싶다.
-        //// 방향
-        //Vector3 dir = transform.right;
-        //// 2. 1초가 지나면
-        //// 현재시간, 기준시간
-        //// 시간이  흐르다가
-        //// 기준시간을 초과하면
-        //if (curTime > 1)
-        //{
-        //    // 3. 왼쪽으로 가고 싶다. 
-        //    dir = -transform.right;
-        //    // 4. 1초가 지나면
-        //    if (curTime > 2)
-        //    {
-        //        curTime = 0;
-        //    }
-        //}
-
-        //transform.position += dir * speed * Time.deltaTime;
-
+ 
         
         //1초가 지나면 왼쪽으로 움직이고 싶다.
         //1.시간이 흐른다.

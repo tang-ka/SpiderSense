@@ -362,8 +362,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40bb23a5b9986e743b5e8401f372ac73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SmallBulletFactory: {fileID: 1300150157838714556, guid: ea1a4d147997f4a479b703f80c31b878, type: 3}
-  speed: 5
+  SmallBulletFactory: {fileID: 1300150157838714556, guid: 1ed64b40ab556484095d690069c849b0, type: 3}
+  speed: 30
   target: {fileID: 1319562127}
 --- !u!1 &615883168
 GameObject:
@@ -475,8 +475,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40bb23a5b9986e743b5e8401f372ac73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SmallBulletFactory: {fileID: 1300150157838714556, guid: ea1a4d147997f4a479b703f80c31b878, type: 3}
-  speed: 5
+  SmallBulletFactory: {fileID: 1300150157838714556, guid: 1ed64b40ab556484095d690069c849b0, type: 3}
+  speed: 30
   target: {fileID: 1319562127}
 --- !u!1 &697151239
 GameObject:
@@ -717,8 +717,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40bb23a5b9986e743b5e8401f372ac73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SmallBulletFactory: {fileID: 1300150157838714556, guid: ea1a4d147997f4a479b703f80c31b878, type: 3}
-  speed: 5
+  SmallBulletFactory: {fileID: 1300150157838714556, guid: 1ed64b40ab556484095d690069c849b0, type: 3}
+  speed: 30
   target: {fileID: 1319562127}
 --- !u!1 &963194225
 GameObject:
@@ -1011,8 +1011,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40bb23a5b9986e743b5e8401f372ac73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SmallBulletFactory: {fileID: 1300150157838714556, guid: ea1a4d147997f4a479b703f80c31b878, type: 3}
-  speed: 5
+  SmallBulletFactory: {fileID: 1300150157838714556, guid: 1ed64b40ab556484095d690069c849b0, type: 3}
+  speed: 30
   target: {fileID: 1319562127}
 --- !u!1 &1357381227
 GameObject:
