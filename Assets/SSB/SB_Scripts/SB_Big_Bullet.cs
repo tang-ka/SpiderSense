@@ -34,6 +34,23 @@ public class SB_Big_Bullet : MonoBehaviour
         BulletPosition.SetActive(false);
     }
 
+    public void Fire()
+    {
+        Debug.Log("GetKeyCode : Alpha1");
+        //2-2. BigBulletManaer를 킨다.
+        BigBulletFactory.SetActive(true);
+        //2-2.BulletPosition도 킨다.
+        BulletPosition.SetActive(true);
+
+        //BigBulletFactory의 처음 값을 가져온다
+        initialPosition = BigBulletFactory.transform.position;
+
+
+        //2-3. 방향을 타겟쪽으로 >> target - me
+        Vector3 dir = target.transform.position - BulletPosition.transform.position;
+        dir.Normalize();
+        isKeyDown1 = true;
+    }
     // Update is called once per frame
     void Update()
     {
@@ -41,22 +58,7 @@ public class SB_Big_Bullet : MonoBehaviour
         //2-1. 1번 버튼을 누르면
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            Debug.Log("GetKeyCode : Alpha1");
-            //2-2. BigBulletManaer를 킨다.
-            BigBulletFactory.SetActive(true);
-            //2-2.BulletPosition도 킨다.
-            BulletPosition.SetActive(true);
-
-            //BigBulletFactory의 처음 값을 가져온다
-            initialPosition = BigBulletFactory.transform.position;  
-
-             
-
-
-            //2-3. 방향을 타겟쪽으로 >> target - me
-            Vector3 dir = target.transform.position - BulletPosition.transform.position;
-            dir.Normalize();
-            isKeyDown1 = true;
+            Fire();
         }
         //앞쪽으로 발사하고 1초가 지나면 멈춘다.
 
@@ -68,6 +70,7 @@ public class SB_Big_Bullet : MonoBehaviour
             dir.Normalize();
 
             BigBulletFactory.transform.position += dir * speed * Time.deltaTime; //앞쪽으로 발사 
+
 
             if (curTime > creatTime)
             {

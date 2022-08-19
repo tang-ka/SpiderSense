@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -58,12 +58,31 @@ public class SB_Jet : MonoBehaviour
             case EnemyState.Die:
                 Die();
                 break;
-
         }
     }
 
 
+    void BigBulletAttack()
+    {
+        SB_Big_Bullet sbBigBullet = gameObject.GetComponent<SB_Big_Bullet>();
+        sbBigBullet.Fire();
+    }
 
+    public GameObject bigBulletManager;
+    public GameObject[] smallBullets;
+    void SmallBulletAttack()
+    {
+        //BigBulletManager 활성화 시킨다.
+        bigBulletManager.SetActive(true);
+        //smallBullets 에서 하나씩 돌면서
+        for(int i = 0; i < smallBullets.Length; i++)
+        {
+            //SB_Small_Bullet 컴포넌트를 가져온다.
+            SB_Small_Bullet smallBullet = smallBullets[i].GetComponent<SB_Small_Bullet>();
+            //가져온 컴포넌트에서 Fire 함수를 실행
+            smallBullet.Fire();
+        }
+    }
 
 
     // 타겟이 일정거리에 들어오면 Idle상태에서 Move로 전환된다.
@@ -86,21 +105,38 @@ public class SB_Jet : MonoBehaviour
             e_state = EnemyState.Move;
         }
 
-
-        //1초가 지나면 Idle상태에서 RandomMove로 전환하고싶다.
+        //1초가 지나면 Idle상태에서 RandomMove or BigBulletAttack or SmallBulletAttack 로 전환하고싶다.
         //1.시간이 흐른다.
         curTime += Time.deltaTime;
         //2.일정시간이 현재시간을 초과하면
         if (curTime > createRTime)
         {
-            //3.Idle에서 RandomMove로 전환
-            e_state = EnemyState.RandomMove;
-            //4. 이동할 방향을 바꿔준다.
-            dir = -dir;
+            //3.Idle에서 RandomMove or BigBulletAttack or SmallBulletAttack 로 전환
+            // 랜던값을 구한다.
+            int rand = 1;// Random.Range(0, 3);
+            //만약에 rand 가 0 이라면 상태를 RandomMove로
+            if(rand == 0)
+            {
+                e_state = EnemyState.RandomMove;
+                //4. 이동할 방향을 바꿔준다.
+                dir = -dir;
+                createRTime = 1;
+            }
+            //그렇지 않고 만약에 rand 가 1 이라면 상태를 BigBulletAttack로
+            else if(rand == 1)
+            {
+                BigBulletAttack();
+                createRTime = 3;
+            }
+            //그렇지 않으면 상태를 SmallBulletAttack 로
+            else if(rand ==2)
+            {
+                SmallBulletAttack();
+                createRTime = 2;
+            }
+                        
             curTime = 0;
         }
-
-        
     }
 
 
@@ -112,8 +148,7 @@ public class SB_Jet : MonoBehaviour
 
     private void RandomMove()
     {
- 
-        
+         
         //1초가 지나면 왼쪽으로 움직이고 싶다.
         //1.시간이 흐른다.
         curTime += Time.deltaTime;
@@ -284,12 +319,10 @@ public class SB_Jet : MonoBehaviour
 
     private void Damage()
     {
-        throw new NotImplementedException();
     }
 
     private void Die()
     {
-        throw new NotImplementedException();
     }
 
     
