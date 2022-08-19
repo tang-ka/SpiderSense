@@ -133,6 +133,17 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             moveState = MoveState.Normal;
         }
+        // Point Web Zip 시작
+        else if (Input.GetButton("Fire2"))
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                wm.isGoPointWebZip = true;
+                moveState = MoveState.PointWebZip;
+
+            }
+        }
+        // Web Swing 시작
         else if (Input.GetKeyDown(KeyCode.E))
         {
             wm.isGoWebSwing = true;
@@ -145,8 +156,6 @@ public class SSH_PlayerMove : MonoBehaviour
             print("두번 점프 하는거다");
             wm.isGoWebZip = true;
             wm.webZipFlag = true;
-            addForceFlag = true;
-            velocityFlag = true;    
             moveState = MoveState.WebZip;
             //webSwingEndVelocity = (transform.forward + Vector3.up * 0.5f) * webZipFactor;
         }
@@ -161,7 +170,6 @@ public class SSH_PlayerMove : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            wm.isClickE = false;
             wm.isGoWebSwing = false;
             moveState = MoveState.Floating;
             webSwingEndVelocity = rb.velocity * webJumpFactor;
@@ -176,8 +184,6 @@ public class SSH_PlayerMove : MonoBehaviour
         }
     }
 
-    bool addForceFlag = false;
-    bool velocityFlag = false;
     private void WebZip()
     {
         PlayerRotate(MoveState.Normal);
@@ -188,7 +194,7 @@ public class SSH_PlayerMove : MonoBehaviour
 
         rb.velocity = webZipDir * 50;
         //rb.AddForce(webZipDir * 2500);
-        print(webZipDir + ", " + rb.velocity + ", " + rb.velocity.magnitude);
+        //print(webZipDir + ", " + rb.velocity + ", " + rb.velocity.magnitude);
 
         // Web Zip 끝
         if (currentTime > 0.5f)
@@ -205,7 +211,16 @@ public class SSH_PlayerMove : MonoBehaviour
 
     private void PointWebZip()
     {
-        throw new NotImplementedException();
+        currentTime += Time.deltaTime;
+        
+
+        if (currentTime > 1)
+        {
+            print("Point Web Zip");
+            moveState = MoveState.Floating;
+
+            currentTime = 0;
+        }
     }
 
     private void PointLaunch()

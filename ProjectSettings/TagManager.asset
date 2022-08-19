@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Ground
   - Wall
+  - Test
   layers:
   - Default
   - TransparentFX

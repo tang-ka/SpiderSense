@@ -48,9 +48,12 @@ public class SSH_WebMove : MonoBehaviour
     void Update()
     {
         RaycastHit hitTest;
-        bool test = RayForDetection(out hitTest);
+        //bool test = RayForDetection(out hitTest);
+        bool test = EdgeDetection(out hitTest);
+
         KeyClickManager();
 
+        // 웹스윙
         if (isGoWebSwing)
         {
             isFinishSkill = false;
@@ -62,6 +65,7 @@ public class SSH_WebMove : MonoBehaviour
         {
             hookCount++;
         }
+        // 웹 집
         else if (isGoWebZip)
         {
             isFinishSkill = false;
@@ -72,8 +76,8 @@ public class SSH_WebMove : MonoBehaviour
                 webZipFlag = false;
             }
         }
-        
-        if (isGoPointWebZip)
+        // 포인트 웹 집
+        else if (isGoPointWebZip)
         {
             isFinishSkill = false;
             RaycastHit hitL, hitR;
@@ -81,17 +85,14 @@ public class SSH_WebMove : MonoBehaviour
             ShootWeb(leftHand.position, hook[hookCount].position, out webDir, out hitL);
         }
 
-        //if ((Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.E)) || (Input.GetKey(KeyCode.E) && Input.GetKeyDown(KeyCode.LeftShift)))
-        //{
-        //    print("Point Web Zip");
-        //}
-
         if (isFinishSkill)
         {
             rightLine.enabled = false;
             leftLine.enabled = false;
         }
     }
+
+    /**********************************************************************************************/
 
     void KeyClickManager()
     {
@@ -134,6 +135,7 @@ public class SSH_WebMove : MonoBehaviour
     int rayCount = 50;
     int detectionRange = 80;
     int detectionHalfAngle = 60;
+
     bool RayForDetection(out RaycastHit hit)
     {
         Ray rayR;
@@ -142,8 +144,6 @@ public class SSH_WebMove : MonoBehaviour
         RaycastHit hitInfoL;
         Vector3 dirR = Vector3.zero;
         Vector3 dirL = Vector3.zero;
-
-        LayerMask maskWall = LayerMask.GetMask("Wall"); // | LayerMask.GetMask("WebHookable");
 
         for (int i = 0; i < rayCount; i++)
         {
@@ -206,32 +206,6 @@ public class SSH_WebMove : MonoBehaviour
                     hitInfoR = hitInfoL = new RaycastHit();
                 }
             }
-
-            //if (hitInfoR.collider.gameObject.layer != maskWall &&
-            //    hitInfoL.collider.gameObject.layer != maskWall) { }
-            //else if (hitInfoR.collider.gameObject.layer == maskWall)
-            //{
-            //    print("오른쪽 벽 발견!!");
-            //    break;
-            //}
-            //else if (hitInfoL.collider.gameObject.layer == maskWall)
-            //{
-            //    print("왼쪽 벽 발견!!");
-            //    break;
-            //}
-
-            //if (hitInfoR.collider.CompareTag("Wall"))
-            //{
-            //    //print("오른쪽 벽 발견!!");
-            //    hit = hitInfoR;
-            //    return true;
-            //}
-            //else if (hitInfoL.collider.CompareTag("Wall"))
-            //{
-            //    //print("왼쪽 벽 발견!!");
-            //    hit = hitInfoL;
-            //    return true;
-            //}
         }
 
         rayR = new Ray(Camera.main.transform.position, -Camera.main.transform.up);
@@ -244,6 +218,66 @@ public class SSH_WebMove : MonoBehaviour
         }
 
         hit = hitInfoR;
+        return false;
+    }
+
+    int EDrayCount = 100;
+    int EDdetectionRange = 500;
+    int EDdetectionHalfAngle = 30;
+
+    bool EdgeDetection(out RaycastHit hit)
+    {
+        Ray ray;
+        RaycastHit hitInfo;
+        Vector3 dir = Vector3.zero;
+
+        for (int i = 0; i < EDrayCount; i++)
+        {
+            //print(i);
+            if (i != 0)
+            {
+                dir = Quaternion.AngleAxis(EDdetectionHalfAngle / EDrayCount, Camera.main.transform.right) * dir;
+                ray = new Ray(Camera.main.transform.position, dir);
+
+                if (Physics.Raycast(ray, out hitInfo, EDdetectionRange))
+                {
+                    Debug.DrawLine(ray.origin, hitInfo.point, Color.blue);
+                    dir = hitInfo.point - ray.origin;
+                    if (hitInfo.collider.CompareTag("Test"))
+                    {
+                        //print("오른쪽 벽 발견!!");
+                        hit = hitInfo;
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                ray = Camera.main.ScreenPointToRay(Input.mousePosition + Vector3.up * 10);
+
+                if (Physics.Raycast(ray, out hitInfo, EDdetectionRange))
+                {
+                    Debug.DrawLine(ray.origin, hitInfo.point, Color.blue);
+                    dir = hitInfo.point - ray.origin;
+
+                }
+                else
+                {
+                    dir = Camera.main.transform.forward + Vector3.up * 10;
+                    hitInfo = new RaycastHit();
+                }
+            }
+        }
+
+        ray = new Ray(Camera.main.transform.position, -Camera.main.transform.up);
+
+        if (Physics.Raycast(ray, out hitInfo, EDdetectionRange))
+        {
+            Debug.DrawLine(ray.origin, hitInfo.point, Color.cyan);
+            dir = hitInfo.point - ray.origin;
+        }
+
+        hit = hitInfo;
         return false;
     }
 }
