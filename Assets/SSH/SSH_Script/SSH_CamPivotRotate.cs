@@ -56,7 +56,7 @@ public class SSH_CamPivotRotate : MonoBehaviour
 
         yRotation += mouseX;
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -20f, 85f);
+        xRotation = Mathf.Clamp(xRotation, -50f, 90f);
 
         transform.eulerAngles = new Vector3(xRotation, yRotation, 0);
     }

@@ -113,7 +113,7 @@ public class SB_Jet : MonoBehaviour
         {
             //3.Idle에서 RandomMove or BigBulletAttack or SmallBulletAttack 로 전환
             // 랜던값을 구한다.
-            int rand = 1;// Random.Range(0, 3);
+            int rand = Random.Range(0, 3);
             //만약에 rand 가 0 이라면 상태를 RandomMove로
             if(rand == 0)
             {

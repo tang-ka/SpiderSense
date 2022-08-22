@@ -18,6 +18,7 @@ public class SSH_PlayerMove : MonoBehaviour
     Vector3 dir;
 
     Rigidbody rb;
+    Animator anim;
     SSH_WebMove wm;
     SSH_CamPivotRotate cpr;
     public Transform body;
@@ -29,7 +30,7 @@ public class SSH_PlayerMove : MonoBehaviour
     private float yVelocity = 0;
     public float jumpPower = 5f;
     //private bool isJumping;
-    float jumpRayLen = 1.3f;
+    public float jumpRayLen = 2.3f;
 
     float speed;
     float webSwingingTime = 0;
@@ -39,12 +40,11 @@ public class SSH_PlayerMove : MonoBehaviour
     public float webJumpFactor = 3;
     bool startFlag = false;
 
-    float webZipFactor = 50;
-
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        anim = GetComponentInChildren<Animator>();
         wm = GetComponent<SSH_WebMove>();
         cpr = GetComponentInChildren<SSH_CamPivotRotate>();
     }
@@ -67,6 +67,10 @@ public class SSH_PlayerMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        KeyClickManager();
+        Debug.DrawLine(transform.position, transform.position - (transform.up * 5), Color.black);
+
+
         switch (moveState)
         {
             case MoveState.Normal:
@@ -106,11 +110,11 @@ public class SSH_PlayerMove : MonoBehaviour
 
     float currentTime;
     public float offsetTime = 1;
-    float webJumpForce = 500;
     bool isWebJump = false;
     /******************************** State Method ***********************************/
     private void Normal()
     {
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 2));
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
         Jump(MoveState.Normal);
@@ -119,39 +123,55 @@ public class SSH_PlayerMove : MonoBehaviour
         if (IsJumping())
         {
             moveState = MoveState.Floating;
+            anim.SetTrigger("Jump");
+        }
+        
+        if (isClickMouse2)
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                wm.isGoPointWebZip = true;
+                wm.pointWebZipFlag = true;
+                wm.isFinishSkill = false;
+                moveState = MoveState.PointWebZip;
+            }
         }
     }
 
     private void Floating()
     {
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 2));
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
         Jump(MoveState.Floating);
 
-        // 웹스윙 시작!
         if (!IsJumping())
         {
             moveState = MoveState.Normal;
+            anim.SetTrigger("Idle");
         }
         // Point Web Zip 시작
-        else if (Input.GetButton("Fire2"))
+        else if (isClickMouse2)
         {
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetKeyDown(KeyCode.R))
             {
                 wm.isGoPointWebZip = true;
+                wm.pointWebZipFlag = true;
+                wm.isFinishSkill = false;
                 moveState = MoveState.PointWebZip;
-
             }
         }
         // Web Swing 시작
         else if (Input.GetKeyDown(KeyCode.E))
         {
             wm.isGoWebSwing = true;
+            wm.webSwingFlag = true;
             moveState = MoveState.WebSwing;
             transform.forward = body.forward;
         }
+
         // Web Zip 시작
-        else if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump"))
         {
             print("두번 점프 하는거다");
             wm.isGoWebZip = true;
@@ -184,18 +204,24 @@ public class SSH_PlayerMove : MonoBehaviour
         }
     }
 
+    float webZipSpeed = 130;
+
     private void WebZip()
     {
         PlayerRotate(MoveState.Normal);
+        Jump(MoveState.WebZip);
         // Web Zip 시작
         currentTime += Time.deltaTime;
-        Vector3 webZipDir = body.forward + body.up * 0.5f;
+
+        Vector3 webZipDir = body.forward + body.up * 0.45f;
         webZipDir.Normalize();
 
-        rb.velocity = webZipDir * 50;
-        //rb.AddForce(webZipDir * 2500);
-        //print(webZipDir + ", " + rb.velocity + ", " + rb.velocity.magnitude);
+        webZipSpeed = Mathf.Lerp(webZipSpeed, 20, Time.deltaTime * 2.5f);
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
 
+        rb.velocity = webZipDir * webZipSpeed;
+
+        //print(webZipDir + ", " + rb.velocity + ", " + rb.velocity.magnitude);
         // Web Zip 끝
         if (currentTime > 0.5f)
         {
@@ -204,28 +230,70 @@ public class SSH_PlayerMove : MonoBehaviour
             moveState = MoveState.Floating;
             webSwingEndVelocity = rb.velocity;
 
+            webZipSpeed = 180;
             currentTime = 0;
         }
         // -> 현재 문제 rb.velocity값이 왔다갔다함. (정상값, (0, 1, 0)의 스케일값, 크기가 작은 값)
     }
 
+    public Vector3 reachPoint;
+    float initialFOV = 60;
+    float FOVChangeSpeed = 5;
+
     private void PointWebZip()
     {
+        Jump(MoveState.PointWebZip);
         currentTime += Time.deltaTime;
-        
 
-        if (currentTime > 1)
+        transform.position = Vector3.Lerp(transform.position, reachPoint, Time.deltaTime * 5);
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+
+        //print("currentTime : " + currentTime);
+        if (Vector3.Distance(transform.position, reachPoint) < 2)
         {
-            print("Point Web Zip");
-            moveState = MoveState.Floating;
+            Ray ray = new Ray(transform.position, -transform.up);
+            RaycastHit hit;
 
-            currentTime = 0;
+            //if (isClickJump)
+            //{
+            //    moveState = MoveState.PointLaunch;
+            //}
+
+            if (Physics.Raycast(ray, out hit, 2f))
+            {
+                wm.isGoPointWebZip = false;
+                wm.isFinishSkill = true;
+                print("지우자");
+                moveState = MoveState.Normal;
+
+                currentTime = 0;
+            }
         }
     }
 
     private void PointLaunch()
     {
-        throw new NotImplementedException();
+        Jump(MoveState.PointWebZip);
+
+        transform.position = Vector3.Lerp(transform.position, reachPoint, Time.deltaTime * 5);
+        Ray ray = new Ray(transform.position, -transform.up);
+        RaycastHit hit;
+
+        // 도착하면
+        if (Vector3.Distance(transform.position, reachPoint) < 2)
+        {
+            if (Physics.Raycast(ray, out hit, 3f))
+            {
+                Vector3 launchDir = wm.offsetDir + Vector3.up * 0.5f;
+
+                //webSwingEndVelocity = launchDir * 5;
+                //wm.isGoPointWebZip = false;
+                //wm.isFinishSkill = true;
+                //moveState = MoveState.Floating;
+
+                currentTime = 0;
+            }
+        }
     }
 
     private void WallRunVertical()
@@ -323,6 +391,11 @@ public class SSH_PlayerMove : MonoBehaviour
             float v = Input.GetAxisRaw("Vertical");
             float h = Input.GetAxisRaw("Horizontal");
 
+            if (v > 0)
+                anim.SetTrigger("Walk");
+            else
+                anim.SetTrigger("Idle");
+
             dir = body.forward * v + body.right * h;
             dir.Normalize();
         }
@@ -350,7 +423,7 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             yVelocity += gravity * Time.deltaTime;
         }
-        else if (state == MoveState.WebSwing)
+        else if (state == MoveState.WebSwing || state == MoveState.WebZip || state == MoveState.PointWebZip)
         {
             yVelocity = 0;
         }
@@ -374,5 +447,37 @@ public class SSH_PlayerMove : MonoBehaviour
         }
         else
             return true;
+    }
+
+    bool isClickMouse2 = false;
+    bool isClickJump = false;
+
+    void KeyClickManager()
+    {
+        if (Input.GetButtonDown("Fire2"))
+        {
+            isClickMouse2 = true;
+        }
+        if (Input.GetButtonUp("Fire2"))
+        {
+            isClickMouse2 = false;
+            currentTime = 0;
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            isClickJump = true;
+        }
+        if (isClickJump)
+        {
+            float currentTime = 0;
+            currentTime += Time.deltaTime;
+            if (currentTime > 1)
+            {
+                isClickJump = false;
+            }
+        }
+
+        
     }
 }   
