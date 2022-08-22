@@ -114,7 +114,7 @@ public class SSH_PlayerMove : MonoBehaviour
     /******************************** State Method ***********************************/
     private void Normal()
     {
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 2));
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 1));
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
         Jump(MoveState.Normal);
@@ -140,7 +140,7 @@ public class SSH_PlayerMove : MonoBehaviour
 
     private void Floating()
     {
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 2));
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 1));
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
         Jump(MoveState.Floating);
@@ -217,7 +217,7 @@ public class SSH_PlayerMove : MonoBehaviour
         webZipDir.Normalize();
 
         webZipSpeed = Mathf.Lerp(webZipSpeed, 20, Time.deltaTime * 2.5f);
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 100, Time.deltaTime * FOVChangeSpeed);
 
         rb.velocity = webZipDir * webZipSpeed;
 
@@ -246,7 +246,7 @@ public class SSH_PlayerMove : MonoBehaviour
         currentTime += Time.deltaTime;
 
         transform.position = Vector3.Lerp(transform.position, reachPoint, Time.deltaTime * 5);
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 100, Time.deltaTime * FOVChangeSpeed);
 
         //print("currentTime : " + currentTime);
         if (Vector3.Distance(transform.position, reachPoint) < 2)

@@ -98,7 +98,7 @@ public class SY_UIManager : MonoBehaviour
             yield return null;
         }
         yield return new WaitForSeconds(5f);
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("Game Scene");
     }
 
 
