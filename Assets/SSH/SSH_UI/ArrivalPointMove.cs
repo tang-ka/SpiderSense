@@ -1,11 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ArrivalPointMove : MonoBehaviour
 {
     public Transform goal;
     public Transform mainCam;
+    public Transform player;
+    Text distance;
 
     Vector3 myPosition;
 
@@ -19,11 +23,14 @@ public class ArrivalPointMove : MonoBehaviour
         worldSize = Camera.main.orthographicSize * 2;
         float meterPerMete = worldSize / Screen.height;
         width = meterPerMete * Screen.width;
+        distance = GetComponentInChildren<Text>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        DistanceUI();
+
         Vector3 myPosition;
 
         // 왼쪽 오른쪽을 구분하고 싶다.
@@ -61,12 +68,16 @@ public class ArrivalPointMove : MonoBehaviour
         {
             myPosition.y = -myPosition.y - Screen.height;
         }
-        
 
         myPosition.y = Mathf.Clamp(myPosition.y, 0 + offset, Screen.height - offset);
         myPosition.x = Mathf.Clamp(myPosition.x, 0 + offset, Screen.width - offset);
 
         transform.position = myPosition;
+    }
+
+    private void DistanceUI()
+    {
+        distance.text = ((int)Vector3.Distance(goal.position, player.position) + "m");
     }
 
     bool IsRight(Transform from, Transform to)

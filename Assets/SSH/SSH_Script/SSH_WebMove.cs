@@ -280,8 +280,10 @@ public class SSH_WebMove : MonoBehaviour
 
         Vector3 dir;
 
+        LayerMask wall = LayerMask.GetMask("Wall");
+
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out curHit, reachableMaxDistance))
+        if (Physics.Raycast(ray, out curHit, reachableMaxDistance, wall))
         {
             if (curHit.distance < reachableMinDistance) { goto Finish; }
             //Debug.DrawLine(ray.origin, curHit.point, Color.red);
@@ -389,9 +391,10 @@ public class SSH_WebMove : MonoBehaviour
     int secondTry = 40;
     int thirdTry = 60;
 
-    int maxLen = 80;
+    int maxLen = 60;
     int startAngle = 25;
 
+    #region WebSwingDetection
     bool WebSwingDetection(out RaycastHit hit)
     {
         Ray rayR;
@@ -513,4 +516,5 @@ public class SSH_WebMove : MonoBehaviour
         hit = hitInfoR;
         return false;
     }
+    #endregion
 }

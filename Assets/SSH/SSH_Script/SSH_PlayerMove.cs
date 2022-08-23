@@ -13,8 +13,8 @@ public class SSH_PlayerMove : MonoBehaviour
     }
 
     public float walkSpeed = 8;
-    public float runSpeed = 10;
-    public float sprintSpeed = 15;
+    public float runSpeed = 15;
+    public float sprintSpeed = 30;
     Vector3 dir;
 
     Rigidbody rb;
@@ -33,12 +33,16 @@ public class SSH_PlayerMove : MonoBehaviour
     public float jumpRayLen = 2.3f;
 
     float speed;
+    float maxWebSwingSpeed = 50;
     float webSwingingTime = 0;
     float webSwingStartSpeed = 0;
     Vector3 webSwingEndVelocity;
     Vector3 inertiaVelocity;
-    public float webJumpFactor = 2.3f;
+    public float webJumpFactor = 3f;
     bool startFlag = false;
+
+    RaycastHit wallHit;
+    bool isWall = false;
 
     // Start is called before the first frame update
     void Start()
@@ -68,7 +72,7 @@ public class SSH_PlayerMove : MonoBehaviour
     void Update()
     {
         KeyClickManager();
-        WallCheck();
+        isWall = WallCheck(out wallHit);
         Debug.DrawLine(transform.position, transform.position - (transform.up * 5), Color.black);
 
 
@@ -125,6 +129,10 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             moveState = MoveState.Floating;
             anim.SetTrigger("Jump");
+        }
+        else if(isWall)
+        {
+            moveState = MoveState.WallRunVertical;
         }
         
         if (isClickMouse2)
@@ -210,6 +218,7 @@ public class SSH_PlayerMove : MonoBehaviour
             wm.isGoWebSwing = false;
             moveState = MoveState.Floating;
             webSwingEndVelocity = rb.velocity;
+            print(rb.velocity);
         }
     }
 
@@ -253,6 +262,7 @@ public class SSH_PlayerMove : MonoBehaviour
     float initialFOV = 60;
     float FOVChangeSpeed = 5;
     float FOVComebackSpeed = 2;
+    float reachTime = 0;
 
     private void PointWebZip()
     {
@@ -273,10 +283,10 @@ public class SSH_PlayerMove : MonoBehaviour
             currentTime = 0;
         }
 
-
         //print("currentTime : " + currentTime);
         if (Vector3.Distance(transform.position, reachPoint) < 2)
         {
+            reachTime += Time.deltaTime;
             Ray ray = new Ray(transform.position, -transform.up);
             RaycastHit hit;
 
@@ -285,7 +295,7 @@ public class SSH_PlayerMove : MonoBehaviour
             //    moveState = MoveState.PointLaunch;
             //}
 
-            if (Physics.Raycast(ray, out hit, 2f))
+            if (Physics.Raycast(ray, out hit, 2f) || reachTime > 1)
             {
                 wm.isGoPointWebZip = false;
                 wm.isFinishSkill = true;
@@ -323,7 +333,14 @@ public class SSH_PlayerMove : MonoBehaviour
 
     private void WallRunVertical()
     {
-        throw new NotImplementedException();
+        if (!isWall)
+        {
+            moveState = MoveState.Normal;
+        }
+        else if (Input.GetButtonDown("Jump"))
+        {
+            moveState = MoveState.Floating;
+        }
     }
 
     private void WallRunHorizontal()
@@ -337,6 +354,7 @@ public class SSH_PlayerMove : MonoBehaviour
         if (moveState == MoveState.Normal)
         {
             startFlag = true;
+            //walkSpeed = Mathf.Lerp(walkSpeed, sprintSpeed, Time.deltaTime);
             speed = walkSpeed;
             webSwingEndVelocity /= 1.5f; // 마찰력 + 정지하려는 힘 -> 관성 확 줄이기
         }
@@ -351,11 +369,13 @@ public class SSH_PlayerMove : MonoBehaviour
             // 시작할때 한번 속력을 받고 싶다.
             if (startFlag)
             {
-                webSwingStartSpeed = Math.Clamp(rb.velocity.magnitude, walkSpeed + 2, sprintSpeed + 10);
+                webSwingStartSpeed = Math.Clamp(rb.velocity.magnitude, walkSpeed + 2, 30);
                 startFlag = false;
             }
             webSwingingTime += Time.deltaTime;
-            speed = webSwingStartSpeed * (2 + webSwingingTime * 2);
+            speed = Math.Clamp(webSwingStartSpeed * (2 + webSwingingTime * 1.5f), 30, maxWebSwingSpeed);
+
+            //print("speed : " + speed);
         }
         
         // 웹스윙이 끝났을때의 속도를 받고 싶다.
@@ -377,7 +397,9 @@ public class SSH_PlayerMove : MonoBehaviour
 
         //print(inertiaVelocity);
         if (moveState != MoveState.WebZip)
+        {
             rb.velocity = dir * speed + inertiaVelocity;
+        }
     }
 
     Vector3 playerForward;
@@ -416,10 +438,14 @@ public class SSH_PlayerMove : MonoBehaviour
             float v = Input.GetAxisRaw("Vertical");
             float h = Input.GetAxisRaw("Horizontal");
 
-            if (v > 0)
+            if (v != 0)
+            {
                 anim.SetTrigger("Walk");
+            }
             else
+            {
                 anim.SetTrigger("Idle");
+            }
 
             dir = body.forward * v + body.right * h;
             dir.Normalize();
@@ -504,19 +530,31 @@ public class SSH_PlayerMove : MonoBehaviour
         }
     }
 
-    public float wallCheckRayLen = 3;
+    public float wallCheckRayLen = 2;
     public int wallCeckCount = 10;
     Vector3 wallCheckDir;
 
-
-    void WallCheck()
+    bool WallCheck(out RaycastHit hit)
     {
-        for (int i = 0; i < wallCeckCount; i += (180 / wallCeckCount))
+        Ray wallCheckRay;
+
+        Vector3 initalDir = Quaternion.AngleAxis(-35, body.up) * body.right;
+
+        for (int i = 0; i <= 130; i += (130 / wallCeckCount))
         {
-            wallCheckDir = Quaternion.AngleAxis(-i, body.up) * body.right;
-            Debug.DrawRay(body.position, wallCheckDir * wallCheckRayLen, Color.red);
+            wallCheckDir = Quaternion.AngleAxis(-i, body.up) * initalDir;
+            wallCheckRay = new Ray(body.position, wallCheckDir);
 
+            Debug.DrawRay(body.position, wallCheckDir * wallCheckRayLen, Color.white);
+
+
+            if (Physics.Raycast(wallCheckRay, out hit, wallCheckRayLen, LayerMask.GetMask("Wall")))
+            {
+                Debug.DrawRay(wallCheckRay.origin, wallCheckRay.direction * wallCheckRayLen, Color.red);
+                return true;
+            }
         }
-
+        hit = new RaycastHit();
+        return false;
     }
 }   
