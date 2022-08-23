@@ -37,7 +37,7 @@ public class SSH_PlayerMove : MonoBehaviour
     float webSwingStartSpeed = 0;
     Vector3 webSwingEndVelocity;
     Vector3 inertiaVelocity;
-    public float webJumpFactor = 3;
+    public float webJumpFactor = 2.3f;
     bool startFlag = false;
 
     // Start is called before the first frame update
@@ -68,6 +68,7 @@ public class SSH_PlayerMove : MonoBehaviour
     void Update()
     {
         KeyClickManager();
+        WallCheck();
         Debug.DrawLine(transform.position, transform.position - (transform.up * 5), Color.black);
 
 
@@ -114,7 +115,7 @@ public class SSH_PlayerMove : MonoBehaviour
     /******************************** State Method ***********************************/
     private void Normal()
     {
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 2));
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * FOVComebackSpeed);
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
         Jump(MoveState.Normal);
@@ -140,10 +141,11 @@ public class SSH_PlayerMove : MonoBehaviour
 
     private void Floating()
     {
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * (FOVChangeSpeed - 2));
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, initialFOV, Time.deltaTime * FOVComebackSpeed);
         PlayerRotate(MoveState.Normal);
         InputManage(MoveState.Normal);
         Jump(MoveState.Floating);
+        wm.isFinishSkill = true;
 
         if (!IsJumping())
         {
@@ -167,13 +169,13 @@ public class SSH_PlayerMove : MonoBehaviour
             wm.isGoWebSwing = true;
             wm.webSwingFlag = true;
             moveState = MoveState.WebSwing;
-            transform.forward = body.forward;
+            //transform.forward = body.forward;
+            //body.forward = transform.forward;
         }
 
         // Web Zip 시작
         if (Input.GetButtonDown("Jump"))
         {
-            print("두번 점프 하는거다");
             wm.isGoWebZip = true;
             wm.webZipFlag = true;
             moveState = MoveState.WebZip;
@@ -183,6 +185,13 @@ public class SSH_PlayerMove : MonoBehaviour
 
     private void WebSwing()
     {
+        if (wm.isWebSwingSuccess == false)
+        {
+            moveState = MoveState.Floating;
+            wm.isWebSwingSuccess = false;
+            return;
+        }
+
         PlayerRotate(MoveState.WebSwing);
         InputManage(MoveState.WebSwing);
         Jump(MoveState.WebSwing);
@@ -207,19 +216,22 @@ public class SSH_PlayerMove : MonoBehaviour
     float webZipSpeed = 130;
 
     private void WebZip()
-    {
+    { 
         PlayerRotate(MoveState.Normal);
         Jump(MoveState.WebZip);
         // Web Zip 시작
         currentTime += Time.deltaTime;
 
-        Vector3 webZipDir = body.forward + body.up * 0.45f;
-        webZipDir.Normalize();
+        if (wm.isWebZipsuccess)
+        {
+            Vector3 webZipDir = body.forward + body.up * 0.45f;
+            webZipDir.Normalize();
 
-        webZipSpeed = Mathf.Lerp(webZipSpeed, 20, Time.deltaTime * 2.5f);
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+            webZipSpeed = Mathf.Lerp(webZipSpeed, 20, Time.deltaTime * 2.5f);
+            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
 
-        rb.velocity = webZipDir * webZipSpeed;
+            rb.velocity = webZipDir * webZipSpeed;
+        }
 
         //print(webZipDir + ", " + rb.velocity + ", " + rb.velocity.magnitude);
         // Web Zip 끝
@@ -230,6 +242,7 @@ public class SSH_PlayerMove : MonoBehaviour
             moveState = MoveState.Floating;
             webSwingEndVelocity = rb.velocity;
 
+            wm.isWebZipsuccess = false;
             webZipSpeed = 180;
             currentTime = 0;
         }
@@ -239,14 +252,27 @@ public class SSH_PlayerMove : MonoBehaviour
     public Vector3 reachPoint;
     float initialFOV = 60;
     float FOVChangeSpeed = 5;
+    float FOVComebackSpeed = 2;
 
     private void PointWebZip()
     {
         Jump(MoveState.PointWebZip);
         currentTime += Time.deltaTime;
 
-        transform.position = Vector3.Lerp(transform.position, reachPoint, Time.deltaTime * 5);
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+        if (wm.isPointWebZipsuccess)
+        {
+            transform.position = Vector3.Lerp(transform.position, reachPoint, Time.deltaTime * 5);
+            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+        }
+        else
+        {
+            wm.isGoPointWebZip = false;
+            wm.isFinishSkill = true;
+            moveState = MoveState.Floating;
+
+            currentTime = 0;
+        }
+
 
         //print("currentTime : " + currentTime);
         if (Vector3.Distance(transform.position, reachPoint) < 2)
@@ -263,7 +289,6 @@ public class SSH_PlayerMove : MonoBehaviour
             {
                 wm.isGoPointWebZip = false;
                 wm.isFinishSkill = true;
-                print("지우자");
                 moveState = MoveState.Normal;
 
                 currentTime = 0;
@@ -326,7 +351,7 @@ public class SSH_PlayerMove : MonoBehaviour
             // 시작할때 한번 속력을 받고 싶다.
             if (startFlag)
             {
-                webSwingStartSpeed = Math.Clamp(rb.velocity.magnitude, walkSpeed, sprintSpeed);
+                webSwingStartSpeed = Math.Clamp(rb.velocity.magnitude, walkSpeed + 2, sprintSpeed + 10);
                 startFlag = false;
             }
             webSwingingTime += Time.deltaTime;
@@ -341,11 +366,11 @@ public class SSH_PlayerMove : MonoBehaviour
         }
         else if (isWebJump)
         {
-            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 1.5f);
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 1.2f);
         }
         else
         {
-            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime);
+            webSwingEndVelocity = Vector3.Lerp(webSwingEndVelocity, Vector3.zero, Time.deltaTime * 2.5f);
         }
 
         inertiaVelocity = webSwingEndVelocity;
@@ -477,7 +502,21 @@ public class SSH_PlayerMove : MonoBehaviour
                 isClickJump = false;
             }
         }
+    }
 
-        
+    public float wallCheckRayLen = 3;
+    public int wallCeckCount = 10;
+    Vector3 wallCheckDir;
+
+
+    void WallCheck()
+    {
+        for (int i = 0; i < wallCeckCount; i += (180 / wallCeckCount))
+        {
+            wallCheckDir = Quaternion.AngleAxis(-i, body.up) * body.right;
+            Debug.DrawRay(body.position, wallCheckDir * wallCheckRayLen, Color.red);
+
+        }
+
     }
 }   
