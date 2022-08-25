@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class SSH_WebMove : MonoBehaviour
 {
-    //LineRenderer[] line = new LineRenderer[2];
     LineRenderer rightLine;
     LineRenderer leftLine;
     public Transform rightHand;
@@ -15,25 +14,35 @@ public class SSH_WebMove : MonoBehaviour
 
     public Vector3 webDir;
 
+    [Header("\t\t          Web Swing")]
     public bool isGoWebSwing = false;
-    public bool isGoWebZip = false;
-    public bool isGoPointWebZip = false;
-    public bool isGoPointLaunch = false;
-
-    float currentTime;
-    public float keyDelayTime = 0.2f;
-    public float deadLineTime = 0.5f;
-
-
+    public bool isWebSwingSuccess = false;
     public bool webSwingFlag = false;
+
+    [Header("\t\t          Web Zip")]
+    public bool isGoWebZip = false;
+    public bool isWebZipsuccess = false;
     public bool webZipFlag = false;
+
+    [Header("\t\t          Point Web Zip")]
+    public bool isGoPointWebZip = false;
+    public bool isPointWebZipsuccess = false;
     public bool pointWebZipFlag = false;
 
-    public bool isWebSwingSuccess = false;
-    public bool isWebZipsuccess = false;
-    public bool isPointWebZipsuccess = false;
+    [Header("\t\t          Finish Skill")]
+    public bool isFinishSkill = true;
 
+    [Header("\t\t          Key Click")]
+    public bool isClickE;
+    public bool isClickLShift;
+    public float keyDelayTime = 0.2f;
+    public float deadLineTime = 0.5f;
+    float currentTime;
+
+    [Header("Header Undecided")]
     public Vector3 offsetDir;
+    RaycastHit webSwingPoint = new RaycastHit();
+
 
     // Start is called before the first frame update
     void Start()
@@ -50,10 +59,7 @@ public class SSH_WebMove : MonoBehaviour
         //leftLine.endColor = Color.blue;
     }
 
-    public bool isClickE;
-    public bool isClickLShift;
-    public bool isFinishSkill = false;
-    RaycastHit webSwingPoint = new RaycastHit();
+    
 
     // Update is called once per frame
     void Update()
@@ -402,13 +408,6 @@ public class SSH_WebMove : MonoBehaviour
         Vector3[] dirC = new Vector3[countC + 1];
         Vector3 dirL = Vector3.zero;
 
-        // Center Ray를 쏘고 싶다.
-        // 방향
-        //dirC = Quaternion.AngleAxis(-70, body.right) * body.forward;
-        //dirC.Normalize();
-        //rayC = new Ray(body.position, dirC);
-        //Debug.DrawLine(body.position, body.position + dirC * 50, Color.black);
-
         for (int i = 0; i <= countC; i++)
         {
             dirC[i] = Quaternion.AngleAxis((startAngle - 90) - i, body.right) * body.forward;
@@ -471,34 +470,34 @@ public class SSH_WebMove : MonoBehaviour
             }
         }
 
-        //for (int i = 0; i <= countC; i++)
-        //{
-        //    for (int l = secondTry + 1; l <= thirdTry; l++)
-        //    {
-        //        dirR = Quaternion.AngleAxis(-1 * l / 2, body.forward) * dirC[i];
-        //        dirR.Normalize();
-        //        rayR = new Ray(body.position, dirR);
+        for (int i = 0; i <= countC; i++)
+        {
+            for (int l = secondTry + 1; l <= thirdTry; l++)
+            {
+                dirR = Quaternion.AngleAxis(-1 * l / 2, body.forward) * dirC[i];
+                dirR.Normalize();
+                rayR = new Ray(body.position, dirR);
 
-        //        dirL = Quaternion.AngleAxis(1 * l / 2, body.forward) * dirC[i];
-        //        dirL.Normalize();
-        //        rayL = new Ray(body.position, dirL);
+                dirL = Quaternion.AngleAxis(1 * l / 2, body.forward) * dirC[i];
+                dirL.Normalize();
+                rayL = new Ray(body.position, dirL);
 
-        //        if (Physics.Raycast(rayR, out hitInfoR, maxLen - l / 2.5f))
-        //        {
-        //            Debug.DrawLine(body.position, body.position + dirR * (maxLen - l / 2.5f), Color.yellow);
-        //            hit = hitInfoR;
+                if (Physics.Raycast(rayR, out hitInfoR, maxLen - l / 2.5f))
+                {
+                    Debug.DrawLine(body.position, body.position + dirR * (maxLen + firstTry + i), Color.yellow);
+                    hit = hitInfoR;
 
-        //            return true;
-        //        }
-        //        else if (Physics.Raycast(rayL, out hitInfoL, maxLen - l / 2.5f))
-        //        {
-        //            Debug.DrawLine(body.position, body.position + dirL * (maxLen - l / 2.5f), Color.yellow);
-        //            hit = hitInfoL;
+                    return true;
+                }
+                else if (Physics.Raycast(rayL, out hitInfoL, maxLen - l / 2.5f))
+                {
+                    Debug.DrawLine(body.position, body.position + dirL * (maxLen + firstTry + i), Color.yellow);
+                    hit = hitInfoL;
 
-        //            return true;
-        //        }
-        //    }
-        //}
+                    return true;
+                }
+            }
+        }
 
         rayR = new Ray(Camera.main.transform.position, -Camera.main.transform.up);
 

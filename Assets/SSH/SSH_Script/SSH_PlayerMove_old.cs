@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 1. 일반적인 입력을 받아 이동하고 싶다.
-public class SSH_PlayerMove_new : MonoBehaviour
+public class SSH_PlayerMove_old : MonoBehaviour
 {
-    public static SSH_PlayerMove_new Instance;
+    //public static SSH_PlayerMove Instance;
     private void Awake()
     {
-        Instance = this;
+        //Instance = this;
     }
 
     public float walkSpeed = 8;
@@ -89,10 +89,11 @@ public class SSH_PlayerMove_new : MonoBehaviour
                 break;
 
             case MoveState.WebSwing:
+                anim.SetTrigger("WebSwing");
                 break;
 
             case MoveState.WebZip:
-                anim.SetTrigger("Floating");
+                anim.SetTrigger("Flying");
                 break;
 
             case MoveState.PointWebZip:
@@ -168,7 +169,7 @@ public class SSH_PlayerMove_new : MonoBehaviour
             wm.isGoWebSwing = false;
             wm.isGoWebZip = false;
             wm.isGoPointWebZip = false;
-            wm.isGoPointLaunch = false;
+            //wm.isGoPointLaunch = false;
 
             wm.isWebSwingSuccess = false;
             wm.isWebZipsuccess = false;
@@ -316,7 +317,7 @@ public class SSH_PlayerMove_new : MonoBehaviour
         }
     }
 
-    float webZipSpeed = 130;
+    public float webZipSpeed = 130;
 
     private void WebZip()
     {
@@ -346,7 +347,6 @@ public class SSH_PlayerMove_new : MonoBehaviour
             ChangeState(MoveState.Floating);
             webSwingEndVelocity = rb.velocity;
 
-            webZipSpeed = 180;
             currentTime = 0;
         }
         // -> 현재 문제 rb.velocity값이 왔다갔다함. (정상값, (0, 1, 0)의 스케일값, 크기가 작은 값)

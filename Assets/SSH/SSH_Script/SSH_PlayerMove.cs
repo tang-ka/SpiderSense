@@ -12,35 +12,39 @@ public class SSH_PlayerMove : MonoBehaviour
         Instance = this;
     }
 
-    public float walkSpeed = 8;
-    public float runSpeed = 15;
-    public float sprintSpeed = 30;
-    Vector3 dir;
-
+    [Header("\t\t          Component")]
+    public Transform body;
+    public Transform camPivot;
     Rigidbody rb;
     Animator anim;
     SSH_WebMove wm;
     SSH_CamPivotRotate cpr;
-    public Transform body;
-    public Transform camPivot;
+
+    [Header("\t\t          Move setting")]
+    public float walkSpeed = 8;
+    public float runSpeed = 15;
+    public float sprintSpeed = 30;
+    float speed;
+    Vector3 dir;
+
+    [Header("\t\t          Jump setting")]
+    public float jumpPower = 5f;
+    public float jumpRayLen = 2f;
+    float gravity = -9.81f;
+    float yVelocity = 0;
 
     float yRotation;
 
-    float gravity = -9.81f;
-    private float yVelocity = 0;
-    public float jumpPower = 5f;
-    //private bool isJumping;
-    public float jumpRayLen = 2f;
-
-    float speed;
+    [Header("\t\t          Web Swing setting")]
+    public float webJumpFactor = 3;
     float maxWebSwingSpeed = 50;
     float webSwingingTime = 0;
     float webSwingStartSpeed = 0;
     Vector3 webSwingEndVelocity;
     Vector3 inertiaVelocity;
-    public float webJumpFactor = 3f;
     bool startFlag = false;
 
+    float webZipSpeed = 150;
 
     RaycastHit wallHit;
     RaycastHit wallHitR;
@@ -72,41 +76,6 @@ public class SSH_PlayerMove : MonoBehaviour
     }
     public MoveState moveState = MoveState.Normal;
     #endregion
-
-    public void ChangeState(MoveState s)
-    {
-        if (moveState == s) return;
-
-        moveState = s;
-
-        switch (moveState)
-        {
-            case MoveState.Normal:
-                break;
-
-            case MoveState.Floating:
-                anim.SetTrigger("Floating");
-                break;
-
-            case MoveState.WebSwing:
-                anim.SetTrigger("WebSwing");
-                break;
-
-            case MoveState.WebZip:
-                anim.SetTrigger("Flying");
-                break;
-
-            case MoveState.PointWebZip:
-                break;
-
-            case MoveState.PointLaunch:
-                break;
-
-            case MoveState.Sticking:
-                break;
-        }
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -157,50 +126,100 @@ public class SSH_PlayerMove : MonoBehaviour
         Movement();
     }
 
-    float stickRotation;
-    Vector3 stickPoint;
-    Vector3 stickUpDir;
-
-    private void Sticking()
+    MoveState previousState;
+    // Change State Method
+    // 1. 상태를 변경해준다
+    // 2. 변경할때의 설정들을 넣어 이곳에서 관리한다.
+    public void ChangeState(MoveState s)
     {
-        // 시작할 때 한번만 들어온다
-        if (wallFlag)
+        previousState = moveState;
+        EndState(previousState);
+
+        if (moveState == s)
         {
-            wm.isGoWebSwing = false;
-            wm.isGoWebZip = false;
-            wm.isGoPointWebZip = false;
-            wm.isGoPointLaunch = false;
-
-            wm.isWebSwingSuccess = false;
-            wm.isWebZipsuccess = false;
-            wm.isPointWebZipsuccess = false;
-
-            stickPoint = new Vector3(transform.position.x, wallHit.point.y, transform.position.z);
-            stickUpDir = wallHit.normal;
-
-            yVelocity = 0;
-            wallFlag = false;
+            print("같은 상태 : " + moveState);
+            return;
         }
 
-        PlayerRotate(MoveState.Sticking);
-        InputManage(MoveState.WebSwing);
-        Jump(MoveState.Sticking);
+        moveState = s;
 
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 75, Time.deltaTime * FOVChangeSpeed);
-
-        if (IsJumping())
+        switch (moveState)
         {
-            //moveState = MoveState.Normal;
-            ChangeState(MoveState.Normal);
-            anim.SetTrigger("Idle");
+            case MoveState.Normal:
+                break;
+
+            case MoveState.Floating:
+                anim.SetTrigger("Floating");
+                break;
+
+            case MoveState.WebSwing:
+                anim.SetTrigger("WebSwing");
+                wm.isGoPointWebZip = true;
+                wm.pointWebZipFlag = true;
+                wm.isFinishSkill = false;
+                break;
+
+            case MoveState.WebZip:
+                wm.isGoWebZip = true;
+                wm.webZipFlag = true;
+                anim.SetTrigger("Flying");
+                break;
+
+            case MoveState.PointWebZip:
+                wm.isGoPointWebZip = true;
+                wm.pointWebZipFlag = true;
+                wm.isFinishSkill = false;
+                break;
+
+            case MoveState.PointLaunch:
+                break;
+
+            case MoveState.Sticking:
+                break;
         }
-        
-        if (Input.GetButtonDown("Jump"))
+    }
+
+    // End State Method
+    // 1. 상태가 끝날때 호출 된다.
+    // 2. 상태를 빠져나올때의 설정들을 넣어 이곳에서 관리한다.
+    public void EndState(MoveState s)
+    {
+        switch (moveState)
         {
-            Vector3 dir = body.forward + body.up * 0.5f;
-            dir.Normalize();
-            webSwingEndVelocity = dir * 200;
-            print(1);
+            case MoveState.Normal:
+                break;
+
+            case MoveState.Floating:
+                break;
+
+            case MoveState.WebSwing:
+                wm.isGoWebSwing = false;
+                wm.isWebSwingSuccess = false;
+                wm.isFinishSkill = true;
+
+                break;
+
+            case MoveState.WebZip:
+                wm.isGoWebZip = false;
+                wm.isWebZipsuccess = false;
+                wm.isFinishSkill = true;
+                webZipSpeed = 150;
+                break;
+
+            case MoveState.PointWebZip:
+                wm.isGoPointWebZip = false;
+                wm.isPointWebZipsuccess = false;
+                wm.isFinishSkill = true;
+                break;
+                
+            case MoveState.PointLaunch:
+                wm.isGoPointWebZip = false;
+                wm.isPointWebZipsuccess = false;
+                wm.isFinishSkill = true;
+                break;
+
+            case MoveState.Sticking:
+                break;
         }
     }
 
@@ -226,9 +245,6 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
-                wm.isGoPointWebZip = true;
-                wm.pointWebZipFlag = true;
-                wm.isFinishSkill = false;
                 ChangeState(MoveState.PointWebZip);
             }
         }
@@ -253,10 +269,6 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
-                wm.isGoPointWebZip = true;
-                wm.pointWebZipFlag = true;
-                wm.isFinishSkill = false;
-                //moveState = MoveState.PointWebZip;
                 ChangeState(MoveState.PointWebZip);
             }
         }
@@ -266,10 +278,7 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             wm.isGoWebSwing = true;
             wm.webSwingFlag = true;
-            //moveState = MoveState.WebSwing;
             ChangeState(MoveState.WebSwing);
-            //transform.forward = body.forward;
-            //body.forward = transform.forward;
         }
 
         // Web Zip 시작
@@ -277,9 +286,7 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             wm.isGoWebZip = true;
             wm.webZipFlag = true;
-            //moveState = MoveState.WebZip;
             ChangeState(MoveState.WebZip);
-            //webSwingEndVelocity = (transform.forward + Vector3.up * 0.5f) * webZipFactor;
         }
     }
 
@@ -287,8 +294,6 @@ public class SSH_PlayerMove : MonoBehaviour
     {
         if (wm.isWebSwingSuccess == false)
         {
-            wm.isGoWebSwing = false;
-            wm.isWebSwingSuccess = false;
             ChangeState(MoveState.Floating);
             return;
         }
@@ -300,8 +305,6 @@ public class SSH_PlayerMove : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            wm.isGoWebSwing = false;
-            wm.isWebSwingSuccess = false;
             ChangeState(MoveState.Floating);
             webSwingEndVelocity = rb.velocity * webJumpFactor;
             isWebJump = true;
@@ -309,20 +312,17 @@ public class SSH_PlayerMove : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.E))
         {
             yVelocity = 0;
-            wm.isGoWebSwing = false;
-            wm.isWebSwingSuccess = false;
             ChangeState(MoveState.Floating);
             webSwingEndVelocity = rb.velocity;
-            print(rb.velocity);
         }
     }
 
-    float webZipSpeed = 130;
 
     private void WebZip()
     {
         PlayerRotate(MoveState.Normal);
         Jump(MoveState.WebZip);
+
         // Web Zip 시작
         currentTime += Time.deltaTime;
 
@@ -332,25 +332,19 @@ public class SSH_PlayerMove : MonoBehaviour
             webZipDir.Normalize();
 
             webZipSpeed = Mathf.Lerp(webZipSpeed, 20, Time.deltaTime * 2.5f);
+            //body.eulerAngles = Vector3.Lerp(body.eulerAngles, new Vector3(0, 0, -360), Time.deltaTime);
             Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
 
             rb.velocity = webZipDir * webZipSpeed;
         }
 
-        //print(webZipDir + ", " + rb.velocity + ", " + rb.velocity.magnitude);
         // Web Zip 끝
         if (currentTime > 0.5f)
         {
-            wm.isGoWebZip = false;
-            wm.isWebZipsuccess = false;
-            wm.isFinishSkill = true;
             ChangeState(MoveState.Floating);
             webSwingEndVelocity = rb.velocity;
-
-            webZipSpeed = 180;
             currentTime = 0;
         }
-        // -> 현재 문제 rb.velocity값이 왔다갔다함. (정상값, (0, 1, 0)의 스케일값, 크기가 작은 값)
     }
 
     public Vector3 reachPoint;
@@ -371,42 +365,32 @@ public class SSH_PlayerMove : MonoBehaviour
         }
         else
         {
-            wm.isGoPointWebZip = false;
-            wm.isFinishSkill = true;
-            ChangeState(MoveState.Floating);
-
+            ChangeState(previousState);
             currentTime = 0;
         }
 
-        //print("currentTime : " + currentTime);
         if (Vector3.Distance(transform.position, reachPoint) < 1.5)
         {
-            transform.position = reachPoint - Vector3.up * 0.8f;
             reachTime += Time.deltaTime;
+            transform.position = reachPoint - Vector3.up * 0.8f;
             Ray ray = new Ray(transform.position, -transform.up);
             RaycastHit hit;
 
             if (isClickJump)
             {
-                //moveState = MoveState.PointLaunch;
                 ChangeState(MoveState.PointLaunch);
             }
-
-            if (Physics.Raycast(ray, out hit, 2f) || reachTime > 1)
+            else if (Physics.Raycast(ray, out hit, 2f) || reachTime > 0.5f)
             {
-                wm.isGoPointWebZip = false;
-                wm.isPointWebZipsuccess = false;
-                wm.isFinishSkill = true;
-                //moveState = MoveState.Normal;
                 ChangeState(MoveState.Normal);
-
+                reachTime = 0;
                 currentTime = 0;
             }
         }
     }
 
     float pointLaunchDelayTime = 0;
-    float pointLaunchPower = 50;
+    float pointLaunchPower = 25;
     Vector3 pointLaunchDir;
 
     private void PointLaunch()
@@ -414,41 +398,53 @@ public class SSH_PlayerMove : MonoBehaviour
         pointLaunchDelayTime += Time.deltaTime;
         Jump(MoveState.PointWebZip);
 
-        pointLaunchDir = body.forward * 1 + body.up * 0.3f;
+        pointLaunchDir = body.forward * 1 + body.up * 0.4f;
         pointLaunchDir.Normalize();
 
         rb.AddForce(pointLaunchDir * pointLaunchPower, ForceMode.Impulse);
 
-        if (pointLaunchDelayTime > 0.3f)
+        if (pointLaunchDelayTime > 0.5f)
         {
-            wm.isGoPointWebZip = false;
-            wm.isPointWebZipsuccess = false;
-            wm.isFinishSkill = true;
-            webSwingEndVelocity = rb.velocity;
-            //rb.AddForce(pointLaunchDir * pointLaunchPower, ForceMode.Impulse);
             ChangeState(MoveState.Floating);
+            webSwingEndVelocity = rb.velocity;
             pointLaunchDelayTime = 0;
         }
+    }
 
+    Vector3 stickPoint;
+    Vector3 stickUpDir;
 
-        //Ray ray = new Ray(transform.position, -transform.up);
-        //RaycastHit hit;
+    private void Sticking()
+    {
+        // 시작할 때 한번만 들어온다
+        if (wallFlag)
+        {
+            stickPoint = new Vector3(transform.position.x, wallHit.point.y, transform.position.z);
+            stickUpDir = wallHit.normal;
 
-            //// 도착하면
-            //if (Vector3.Distance(transform.position, reachPoint) < 2)
-            //{
-            //    if (Physics.Raycast(ray, out hit, 3f))
-            //    {
-            //        Vector3 launchDir = wm.offsetDir + Vector3.up * 0.5f;
+            yVelocity = 0;
+            wallFlag = false;
+        }
 
-            //        //webSwingEndVelocity = launchDir * 5;
-            //        //wm.isGoPointWebZip = false;
-            //        //wm.isFinishSkill = true;
-            //        //moveState = MoveState.Floating;
+        PlayerRotate(MoveState.Sticking);
+        InputManage(MoveState.WebSwing);
+        Jump(MoveState.Sticking);
 
-            //        currentTime = 0;
-            //    }
-            //}
+        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 75, Time.deltaTime * FOVChangeSpeed);
+
+        if (IsJumping())
+        {
+            ChangeState(MoveState.Normal);
+            anim.SetTrigger("Idle");
+        }
+        
+        if (Input.GetButtonDown("Jump"))
+        {
+            Vector3 dir = body.forward + body.up * 0.5f;
+            dir.Normalize();
+            webSwingEndVelocity = dir * 200;
+            print(1);
+        }
     }
 
     private void WallRunVertical()
@@ -499,8 +495,6 @@ public class SSH_PlayerMove : MonoBehaviour
             }
             webSwingingTime += Time.deltaTime;
             speed = Math.Clamp(webSwingStartSpeed * (2 + webSwingingTime * 1.5f), 30, maxWebSwingSpeed);
-
-            //print("speed : " + speed);
         }
 
         // 웹스윙이 끝났을때의 속도를 받고 싶다.
@@ -520,9 +514,6 @@ public class SSH_PlayerMove : MonoBehaviour
 
         inertiaVelocity = webSwingEndVelocity;
 
-        
-
-        //print(inertiaVelocity);
         if (moveState != MoveState.WebZip)
         {
             rb.velocity = dir * speed + inertiaVelocity;
@@ -572,51 +563,7 @@ public class SSH_PlayerMove : MonoBehaviour
 
             float dot = Vector3.Dot(camPivot.right, stickUpDir);
 
-
             body.localEulerAngles = new Vector3(0, cpr.yRot, 0);
-
-            //if (cpr.yRot)
-
-            //if (dot >= 0.65f)
-            //    yRotation = 90;
-            //else if (dot <= -0.65f)
-            //    yRotation = -90f;
-            //else
-            //    yRotation = 0;
-
-            //rotY = Mathf.Lerp(rotY, yRotation, Time.deltaTime * 5);
-            ////body.localEulerAngles = new Vector3(0, yRotation, 0);
-            //Vector3 dir = new Vector3(0, rotY, 0);
-            //body.localEulerAngles = dir;
-
-            // Vector3.Lerp(body.localEulerAngles, dir, Time.deltaTime * 5);
-
-
-            //if (dot >= 0.65f)
-            //    dir = Vector3.Cross(stickUpDir, Vector3.up).normalized;
-            //else if (dot <= -0.65f)
-            //    dir = Vector3.Cross(stickUpDir, Vector3.down).normalized;
-            //else
-            //    dir = Vector3.up;
-
-            //print("dot : " + dot + "\t dir : " + dir);
-
-
-            //if (MathF.Abs(dot) >= 0.8f)
-            //{
-            //    body.forward = dir;
-            //}
-            //else
-            //    body.forward = Vector3.Lerp(body.forward, dir, Time.deltaTime * 5);
-
-            //if (MathF.Abs(dot) >= 0.8f)
-            //{
-            //    body.localEulerAngles = dir;
-            //}
-            //else
-            //    body.localEulerAngles = Vector3.Lerp(body.localEulerAngles, dir, Time.deltaTime * 5);
-
-            //Vector3 dir = Quaternion.AngleAxis(yRotation, transform.up) * body.forward;
         }
     }
 
@@ -626,15 +573,6 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             float v = Input.GetAxisRaw("Vertical");
             float h = Input.GetAxisRaw("Horizontal");
-
-            //if (v == 0)
-            //{
-            //    anim.SetTrigger("Idle");
-            //}
-            //else
-            //{
-            //    anim.SetTrigger("Walk");
-            //}
 
             dir = body.forward * v + body.right * h;
             dir.Normalize();
@@ -679,7 +617,6 @@ public class SSH_PlayerMove : MonoBehaviour
         if (state == MoveState.Sticking) return;
 
         dir.y = yVelocity;
-        //print(yVelocity);
     }
 
     public bool IsJumping()
@@ -756,6 +693,7 @@ public class SSH_PlayerMove : MonoBehaviour
         hit = new RaycastHit();
         return false;
     }
+
     bool WallCheckFromLeft(out RaycastHit hit)
     {
         Ray wallCheckRay;
@@ -797,7 +735,6 @@ public class SSH_PlayerMove : MonoBehaviour
             else
                 wallHit = wallHitL;
 
-            print(wallHit.distance);
             Debug.DrawLine(wallHit.point, wallHit.point + wallHit.normal, Color.green);
             if ((wallHit.distance < 1.2f))
             {
