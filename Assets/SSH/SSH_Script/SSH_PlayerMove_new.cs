@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 1. 일반적인 입력을 받아 이동하고 싶다.
-public class SSH_PlayerMove : MonoBehaviour
+public class SSH_PlayerMove_new : MonoBehaviour
 {
-    public static SSH_PlayerMove Instance;
+    public static SSH_PlayerMove_new Instance;
     private void Awake()
     {
         Instance = this;
@@ -89,11 +89,10 @@ public class SSH_PlayerMove : MonoBehaviour
                 break;
 
             case MoveState.WebSwing:
-                anim.SetTrigger("WebSwing");
                 break;
 
             case MoveState.WebZip:
-                anim.SetTrigger("Flying");
+                anim.SetTrigger("Floating");
                 break;
 
             case MoveState.PointWebZip:

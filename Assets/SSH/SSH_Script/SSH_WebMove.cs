@@ -82,6 +82,7 @@ public class SSH_WebMove : MonoBehaviour
                     webSwingFlag = false;
                 }
             }
+
             if (isWebSwingSuccess)
                 ShootWeb(rightHand.position, webSwingPoint.point, out webDir);
         }
@@ -170,7 +171,6 @@ public class SSH_WebMove : MonoBehaviour
     int detectionRange = 80;
     int detectionHalfAngle = 60;
 
-    #region RayForDetection()
     bool RayForDetection(out RaycastHit hit)
     {
         Ray rayR;
@@ -255,7 +255,6 @@ public class SSH_WebMove : MonoBehaviour
         hit = hitInfoR;
         return false;
     }
-    #endregion
 
     float ED_rayCount = 300;
     float ED_detectionRange = 500;
@@ -268,7 +267,6 @@ public class SSH_WebMove : MonoBehaviour
     Vector3 detectionPoint;
     Vector3 sightPoint;
 
-    #region EdgeDetection()
     public bool EdgeDetection(out RaycastHit hit)
     {
         Ray ray;
@@ -384,7 +382,6 @@ public class SSH_WebMove : MonoBehaviour
         hit = hitNull;
         return false;
     }
-    #endregion
 
     int countC = 20;
     int firstTry = 15;
@@ -394,7 +391,6 @@ public class SSH_WebMove : MonoBehaviour
     int maxLen = 60;
     int startAngle = 25;
 
-    #region WebSwingDetection
     bool WebSwingDetection(out RaycastHit hit)
     {
         Ray rayR;
@@ -432,13 +428,13 @@ public class SSH_WebMove : MonoBehaviour
 
                 if (Physics.Raycast(rayR, out hitInfoR, maxLen - j / 4))
                 {
-                    Debug.DrawLine(body.position, body.position + dirR * (maxLen + j), Color.blue);
+                    Debug.DrawLine(body.position, body.position + dirR * (maxLen + i), Color.blue);
                     hit = hitInfoR;
                     return true;
                 }
                 else if (Physics.Raycast(rayL, out hitInfoL, maxLen - j / 4))
                 {
-                    Debug.DrawLine(body.position, body.position + dirL * (maxLen + j), Color.blue);
+                    Debug.DrawLine(body.position, body.position + dirL * (maxLen + i), Color.blue);
                     hit = hitInfoL;
 
                     return true;
@@ -460,14 +456,14 @@ public class SSH_WebMove : MonoBehaviour
 
                 if (Physics.Raycast(rayR, out hitInfoR, maxLen - k / 3))
                 {
-                    Debug.DrawLine(body.position, body.position + dirR * (maxLen + k), Color.green);
+                    Debug.DrawLine(body.position, body.position + dirR * (maxLen + firstTry + i), Color.green);
                     hit = hitInfoR;
 
                     return true;
                 }
                 else if (Physics.Raycast(rayL, out hitInfoL, maxLen - k / 3))
                 {
-                    Debug.DrawLine(body.position, body.position + dirL * (maxLen + k), Color.green);
+                    Debug.DrawLine(body.position, body.position + dirL * (maxLen + firstTry + i), Color.green);
                     hit = hitInfoL;
 
                     return true;
@@ -516,5 +512,4 @@ public class SSH_WebMove : MonoBehaviour
         hit = hitInfoR;
         return false;
     }
-    #endregion
 }
