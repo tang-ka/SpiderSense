@@ -51,6 +51,7 @@ public class SSH_CamPivotRotate : MonoBehaviour
             if ((mainCam.position - normalCamPosition.position).magnitude < 0.01)
                 mainCam.position = normalCamPosition.position;
         }
+
         float mouseX = Input.GetAxisRaw("Mouse X") * sensX * Time.deltaTime;
         float mouseY = Input.GetAxisRaw("Mouse Y") * sensY * Time.deltaTime;
 

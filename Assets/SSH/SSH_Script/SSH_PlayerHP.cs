@@ -11,7 +11,8 @@ public class SSH_PlayerHP : MonoBehaviour
         Instance = this;
     }
 
-    float hp = 100;
+    float hp;
+    float intitalHP = 100;
     public float HP
     {
         get { return hp; }
@@ -36,15 +37,15 @@ public class SSH_PlayerHP : MonoBehaviour
     }
     public HealthState healthState = HealthState.Alive;
 
-    SSH_PlayerMove playerMove;
+    SSH_PlayerMove_new playerMove;
     SSH_WebMove playerWebMove;
     SSH_CamPivotRotate playerCamRotate;
 
     // Start is called before the first frame update
     void Start()
     {
-        HP = 100;
-        playerMove = GetComponent<SSH_PlayerMove>();
+        HP = intitalHP;
+        playerMove = GetComponent<SSH_PlayerMove_new>();
         playerWebMove = GetComponent<SSH_WebMove>();
         playerCamRotate = GetComponentInChildren<SSH_CamPivotRotate>();
     }
@@ -77,4 +78,10 @@ public class SSH_PlayerHP : MonoBehaviour
         playerWebMove.enabled = false;
         playerCamRotate.enabled = false;
      }
+
+    void DamageProcess(float damage)
+    {
+        HP -= damage;
+        print("스파이더맨이 공격을 받았다.");
+    }
 }
