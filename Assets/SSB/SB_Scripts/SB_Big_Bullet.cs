@@ -94,7 +94,7 @@ public class SB_Big_Bullet : MonoBehaviour
 
             float moveDis = Vector3.Distance(BulletPosition.transform.position, BigBulletFactory.transform.position);
 
-            print(moveDis);
+            //print(moveDis);
             //2.거리가 좁혀지면
             float distance = 0.5f;
             if( moveDis < distance )
