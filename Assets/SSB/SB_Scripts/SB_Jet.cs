@@ -122,12 +122,12 @@ public class SB_Jet : MonoBehaviour
                 //방향 바꿀때마다 45도 왼쪽 오른쪽 바꾸기 
                 if(dir == transform.right)
                 {
-                    jetModel.transform.localEulerAngles = new Vector3(0,0,1) * 45;
+                    jetModel.transform.localEulerAngles = new Vector3(0,0,1) * -45;
                 }
 
                 if (dir == -transform.right)
                 {
-                    jetModel.transform.localEulerAngles = new Vector3(0, 0, 1) * -45;
+                    jetModel.transform.localEulerAngles = new Vector3(0, 0, 1) * 45;
                 }
 
 
