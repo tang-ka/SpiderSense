@@ -283,13 +283,45 @@ public class SB_Jet : MonoBehaviour
         }
     }
 
+    //피격 이벤트를 받아서 처리 함수
+    //필요속성 : 체력
+    public int hp = 3;
+    
+    public void OnDamageProcess()
+    {
+        hp--;
+        //체력이 없으면 상태를 죽음으로 전환 
+        if(hp <=0)
+        {
+            e_state = EnemyState.Die;
+        }
 
+        //체력이 남아있으면 상태를 피격으로 전환하고 싶다.
+        else
+        {
+            e_state = EnemyState.Damage;
+        }
+
+    }
+
+    //일정시간 기다렸다가 대기로 전환하고 싶다.
+    //필요속성 : 피격대기시간 
+    public float damageDelayTime = 2; 
+  
     private void Damage()
     {
+        curTime += Time.deltaTime;
+        if(curTime > damageDelayTime)
+        {
+            e_state = EnemyState.Idle;
+            curTime = 0;
+        }
+
     }
 
     private void Die()
     {
+        //시네머신이 재생된다
     }
 
     
