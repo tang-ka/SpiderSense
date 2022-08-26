@@ -296,21 +296,32 @@ public class SB_Jet : MonoBehaviour
     
     public void OnDamageProcess()
     {
-        SB_EnemyHP.Instance.OnDamageHP();
+        //SB_EnemyHP.Instance.OnDamageHP();
 
 
+        ////체력이 없으면 상태를 죽음으로 전환 
+        //if (SB_EnemyHP.Instance.hp <=0)
+        //{
+        //    e_state = EnemyState.Die;
+        //}
+
+        ////체력이 남아있으면 상태를 피격으로 전환하고 싶다.
+        //else
+        //{
+        //    e_state = EnemyState.Damage;
+        //}
+
+        SB_EnemyHP sB_EnemyHP = GetComponent<SB_EnemyHP>();
+        sB_EnemyHP.OnDamageHP();
         //체력이 없으면 상태를 죽음으로 전환 
-        if (SB_EnemyHP.Instance.hp <=0)
+        if(sB_EnemyHP.hp <=0)
         {
             e_state = EnemyState.Die;
         }
-
-        //체력이 남아있으면 상태를 피격으로 전환하고 싶다.
         else
         {
             e_state = EnemyState.Damage;
         }
-
     }
 
     //일정시간 기다렸다가 대기로 전환하고 싶다.
