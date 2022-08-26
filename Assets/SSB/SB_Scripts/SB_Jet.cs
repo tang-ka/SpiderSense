@@ -17,7 +17,6 @@ public class SB_Jet : MonoBehaviour
         Attack,     
         Damage,
         Die
-
     };
 
     public EnemyState e_state = EnemyState.Idle; //초기값을 Idle로 셋팅했다
@@ -61,7 +60,6 @@ public class SB_Jet : MonoBehaviour
         }
     }
 
-
     void BigBulletAttack()
     {
         SB_Big_Bullet sbBigBullet = gameObject.GetComponent<SB_Big_Bullet>();
@@ -84,7 +82,6 @@ public class SB_Jet : MonoBehaviour
         }
     }
 
-
     // 타겟이 일정거리에 들어오면 Idle상태에서 Move로 전환된다.
     #region Idle 속성
     // 필요속성 : 거리 -> 타겟과의 거리, 감지 거리
@@ -93,6 +90,9 @@ public class SB_Jet : MonoBehaviour
     #endregion
 
     //필요속성 : 감지거리 (정해진 - Move > Idle)
+
+    //필요속성 : Jet 본체 
+    public Transform jetModel; 
 
     private void Idle()
     {
@@ -118,9 +118,27 @@ public class SB_Jet : MonoBehaviour
             if(rand == 0)
             {
                 e_state = EnemyState.RandomMove;
+
+                //방향 바꿀때마다 45도 왼쪽 오른쪽 바꾸기 
+                if(dir == transform.right)
+                {
+                    jetModel.transform.localEulerAngles = new Vector3(0,0,1) * 45;
+                }
+
+                if (dir == -transform.right)
+                {
+                    jetModel.transform.localEulerAngles = new Vector3(0, 0, 1) * -45;
+                }
+
+
+
                 //4. 이동할 방향을 바꿔준다.
                 dir = -dir;
                 createRTime = 1;
+
+                {
+                    
+                }
             }
             //그렇지 않고 만약에 rand 가 1 이라면 상태를 BigBulletAttack로
             else if(rand == 1)
@@ -139,8 +157,6 @@ public class SB_Jet : MonoBehaviour
         }
     }
 
-
-
     //필요속성 : 현재시간, 일정시간
 
     float createRTime = 1;
@@ -148,7 +164,6 @@ public class SB_Jet : MonoBehaviour
 
     private void RandomMove()
     {
-         
         //1초가 지나면 왼쪽으로 움직이고 싶다.
         //1.시간이 흐른다.
         curTime += Time.deltaTime;
@@ -156,25 +171,9 @@ public class SB_Jet : MonoBehaviour
         //2.creatRTime이 currentTime을 초과하면
         if (curTime > createRTime)
         {
-
-            ////3.오른쪽으로 움직이고 싶다.
-            //Vector3 dir = transform.right;
-            //transform.position += dir * speed * Time.deltaTime;
-
-            ////4.1초 후에 -> 1초가 지나면
-            //if(curTime > createRTime)
-            //{ 
-
-            ////5.왼쪽으로 움직이고 싶다.
-            //dir = -dir;
-            //transform.position += dir * speed * Time.deltaTime;
-
-            ////4.1초 후에 Idle 로 변경하고 싶다.
-            //}
             e_state = EnemyState.Idle;
             // 총알 한발을 나가게 하고 싶다. 
             // 1. 총알을 생성한다.
-            //총알 프리팹은 공장이였다... 이미 생성을 했다...프리팹 스크립트에 내가 이미... 가게해놓았다...
             GameObject bullet = Instantiate(bulletFactory);
 
             //앞 방향이 타겟을 향하게 하고싶다.
@@ -192,8 +191,6 @@ public class SB_Jet : MonoBehaviour
             //Vector3 dir = transform.right;
             transform.position += dir * speed * Time.deltaTime;
         }
-        
-
     }
 
     //Enemy가 Target 방향으로 이동한다. 일정거리 안으로 들어오면 Move > Attack
@@ -205,9 +202,6 @@ public class SB_Jet : MonoBehaviour
 
     private void Move()
     {
-
-
-
         //2.타겟 방향으로
         Vector3 dir = target.transform.position - transform.position;
         dir.y = 0;
@@ -244,29 +238,7 @@ public class SB_Jet : MonoBehaviour
 
     private void Attack()
     {
-        //타겟방향으로 이동하면서 
-        /*
-        //1.타겟 방향으로
-        Vector3 dir = target.transform.position - transform.position;
-        dir.y = 0;
-        transform.forward = dir;
-        dir.Normalize();
-        //2.이동하고싶다.
-        //P = P0+vt
-        transform.position += dir * speed * Time.deltaTime;
-        */
-        //타겟방향으로 총알이 나가게 한다.
-
-
-        //타겟 방향을 바라보게 하고 싶다.
-        // -> 앞 방향을 타겟 방향으로 하고 싶다.
-
-
-
-
-
         Fire();
-
 
         //1.일정거리 이상 멀어지면
         if (distance >= attackDistance)
@@ -274,12 +246,7 @@ public class SB_Jet : MonoBehaviour
             //2.move상태로 바뀐다.
             e_state = EnemyState.Move;
         }
-
-
-
     }
-
-
 
 
     public GameObject bulletFactory;
