@@ -77,4 +77,10 @@ public class SSH_PlayerHP : MonoBehaviour
         playerWebMove.enabled = false;
         playerCamRotate.enabled = false;
      }
+
+    void DamageProcess(float damage)
+    {
+        HP -= damage;
+        print("스파이더맨이 공격을 받았다.");
+    }
 }
