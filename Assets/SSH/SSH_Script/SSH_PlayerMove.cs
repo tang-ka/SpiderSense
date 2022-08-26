@@ -537,7 +537,8 @@ public class SSH_PlayerMove : MonoBehaviour
             {
                 playerForward = camPivot.forward;
                 playerForward.y = 0;
-                body.forward = playerForward;
+                //body.forward = playerForward;
+                body.forward = Vector3.Lerp(body.forward, playerForward, Time.deltaTime * 10);
             }
         }
         else if (state == MoveState.WebSwing)
@@ -573,6 +574,12 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             float v = Input.GetAxisRaw("Vertical");
             float h = Input.GetAxisRaw("Horizontal");
+
+            float animV = Input.GetAxis("Vertical");
+            float animH = Input.GetAxis("Horizontal");
+
+            anim.SetFloat("Vertical", animV);
+            anim.SetFloat("Horizontal", animH);
 
             dir = body.forward * v + body.right * h;
             dir.Normalize();
@@ -628,8 +635,20 @@ public class SSH_PlayerMove : MonoBehaviour
         if (Physics.Raycast(ray, out hitInfo))
         {
             if (hitInfo.distance < jumpRayLen && yVelocity <= 0)
+            {
+                if (hitInfo.distance > 0.1)
+                {
+                    transform.position = Vector3.Lerp(transform.position, hitInfo.point, Time.deltaTime * 10);
+                    transform.up = hitInfo.normal;
+                }
+                else
+                {
+                    transform.position = hitInfo.point;
+                }
+
                 return false;
-            else 
+            }
+            else
                 return true;
         }
         else
