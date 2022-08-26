@@ -117,7 +117,7 @@ public class SSH_WebMove : MonoBehaviour
                 offsetDir.Normalize();
 
                 Vector3 offset = offsetDir * 0.6f + Vector3.up * 0.8f;
-                SSH_PlayerMove.Instance.reachPoint = hit.point + offset;
+                SSH_PlayerMove_new.Instance.reachPoint = hit.point + offset;
 
                 ShootWeb(rightHand.position, hit.point, out webDir);
                 ShootWeb(leftHand.position, hit.point, out webDir);
@@ -423,9 +423,14 @@ public class SSH_WebMove : MonoBehaviour
                 dirR.Normalize();
                 rayR = new Ray(body.position, dirR);
 
+
                 dirL = Quaternion.AngleAxis(1 * j / 2, body.forward) * dirC[i];
                 dirL.Normalize();
                 rayL = new Ray(body.position, dirL);
+
+                Debug.DrawLine(body.position, body.position + dirR * (maxLen + i), Color.blue);
+                Debug.DrawLine(body.position, body.position + dirL * (maxLen + i), Color.blue);
+
 
                 if (Physics.Raycast(rayR, out hitInfoR, maxLen - j / 4))
                 {
@@ -455,6 +460,10 @@ public class SSH_WebMove : MonoBehaviour
                 dirL.Normalize();
                 rayL = new Ray(body.position, dirL);
 
+                Debug.DrawLine(body.position, body.position + dirR * (maxLen + firstTry + i), Color.green);
+                Debug.DrawLine(body.position, body.position + dirL * (maxLen + firstTry + i), Color.green);
+
+
                 if (Physics.Raycast(rayR, out hitInfoR, maxLen - k / 3))
                 {
                     Debug.DrawLine(body.position, body.position + dirR * (maxLen + firstTry + i), Color.green);
@@ -483,6 +492,10 @@ public class SSH_WebMove : MonoBehaviour
                 dirL = Quaternion.AngleAxis(1 * l / 2, body.forward) * dirC[i];
                 dirL.Normalize();
                 rayL = new Ray(body.position, dirL);
+
+                Debug.DrawLine(body.position, body.position + dirR * (maxLen + firstTry + i), Color.yellow);                    Debug.DrawLine(body.position, body.position + dirL * (maxLen + firstTry + i), Color.yellow);
+                Debug.DrawLine(body.position, body.position + dirL * (maxLen + firstTry + i), Color.yellow);
+
 
                 if (Physics.Raycast(rayR, out hitInfoR, maxLen - l / 2.5f))
                 {
