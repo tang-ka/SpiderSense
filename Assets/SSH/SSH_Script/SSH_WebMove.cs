@@ -6,11 +6,11 @@ public class SSH_WebMove : MonoBehaviour
 {
     LineRenderer rightLine;
     LineRenderer leftLine;
+    Animator anim;
     public Transform rightHand;
     public Transform leftHand;
     public Transform[] hook;
     public Transform body;
-
 
     public Vector3 webDir;
 
@@ -51,12 +51,12 @@ public class SSH_WebMove : MonoBehaviour
         leftLine = leftHand.GetComponent<LineRenderer>();
 
         rightLine.positionCount = 2;
-        //rightLine.startColor = Color.white;
-        //rightLine.endColor = Color.blue;
+        rightLine.startWidth = 0.05f;
+        rightLine.endWidth = 0.05f;
 
         leftLine.positionCount = 2;
-        //leftLine.startColor = Color.white;
-        //leftLine.endColor = Color.blue;
+        leftLine.startWidth = 0.05f;
+        leftLine.endWidth = 0.05f;
     }
 
     
@@ -90,7 +90,9 @@ public class SSH_WebMove : MonoBehaviour
             }
 
             if (isWebSwingSuccess)
+            {
                 ShootWeb(rightHand.position, webSwingPoint.point, out webDir);
+            }
         }
         // À¥ Áý
         else if (isGoWebZip)

@@ -71,8 +71,6 @@ public class SSH_PlayerMove : MonoBehaviour
         PointWebZip,
         PointLaunch,
         Sticking,
-        WallRunVertical,
-        WallRunHorizontal,
     }
     public MoveState moveState = MoveState.Normal;
     #endregion
@@ -82,7 +80,7 @@ public class SSH_PlayerMove : MonoBehaviour
         KeyClickManager();
         WallCheck();
 
-        anim.SetBool("IsFloating", (moveState == MoveState.Floating));
+        anim.SetBool("isFloating", moveState == MoveState.Floating);
 
         switch (moveState)
         {
@@ -112,14 +110,6 @@ public class SSH_PlayerMove : MonoBehaviour
 
             case MoveState.Sticking:
                 Sticking();
-                break;
-
-            case MoveState.WallRunVertical:
-                WallRunVertical();
-                break;
-
-            case MoveState.WallRunHorizontal:
-                WallRunHorizontal();
                 break;
         }
 
@@ -162,13 +152,14 @@ public class SSH_PlayerMove : MonoBehaviour
             case MoveState.WebZip:
                 wm.isGoWebZip = true;
                 wm.webZipFlag = true;
-                anim.SetTrigger("Flying");
+                anim.SetTrigger("WebZip");
                 break;
 
             case MoveState.PointWebZip:
                 wm.isGoPointWebZip = true;
                 wm.pointWebZipFlag = true;
                 wm.isFinishSkill = false;
+                anim.SetTrigger("PointWebZip");
                 break;
 
             case MoveState.PointLaunch:
@@ -196,7 +187,6 @@ public class SSH_PlayerMove : MonoBehaviour
                 wm.isGoWebSwing = false;
                 wm.isWebSwingSuccess = false;
                 wm.isFinishSkill = true;
-
                 break;
 
             case MoveState.WebZip:
@@ -210,6 +200,7 @@ public class SSH_PlayerMove : MonoBehaviour
                 wm.isGoPointWebZip = false;
                 wm.isPointWebZipsuccess = false;
                 wm.isFinishSkill = true;
+                anim.SetTrigger("SkillEnd");
                 break;
                 
             case MoveState.PointLaunch:
@@ -260,9 +251,7 @@ public class SSH_PlayerMove : MonoBehaviour
 
         if (!IsJumping())
         {
-            // moveState = MoveState.Normal;
             ChangeState(MoveState.Normal);
-            anim.SetTrigger("Idle");
         }
         // Point Web Zip Ω√¿€
         else if (isClickMouse2)
@@ -333,7 +322,7 @@ public class SSH_PlayerMove : MonoBehaviour
 
             webZipSpeed = Mathf.Lerp(webZipSpeed, 20, Time.deltaTime * 2.5f);
             //body.eulerAngles = Vector3.Lerp(body.eulerAngles, new Vector3(0, 0, -360), Time.deltaTime);
-            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 90, Time.deltaTime * FOVChangeSpeed);
 
             rb.velocity = webZipDir * webZipSpeed;
         }
@@ -362,6 +351,7 @@ public class SSH_PlayerMove : MonoBehaviour
         {
             transform.position = Vector3.Lerp(transform.position, reachPoint, Time.deltaTime * 5);
             Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, Time.deltaTime * FOVChangeSpeed);
+            body.forward = Vector3.Lerp(body.forward, reachPoint - transform.position, Time.deltaTime * 5);
         }
         else
         {
@@ -435,7 +425,6 @@ public class SSH_PlayerMove : MonoBehaviour
         if (IsJumping())
         {
             ChangeState(MoveState.Normal);
-            anim.SetTrigger("Idle");
         }
         
         if (Input.GetButtonDown("Jump"))
@@ -451,7 +440,7 @@ public class SSH_PlayerMove : MonoBehaviour
     {
         if (!isWall)
         {
-            moveState = MoveState.Normal;
+            ChangeState(MoveState.Normal);
         }
         else if (Input.GetButtonDown("Jump"))
         {
@@ -538,7 +527,7 @@ public class SSH_PlayerMove : MonoBehaviour
                 playerForward = camPivot.forward;
                 playerForward.y = 0;
                 //body.forward = playerForward;
-                body.forward = Vector3.Lerp(body.forward, playerForward, Time.deltaTime * 10);
+                body.forward = Vector3.Lerp(body.forward, playerForward, Time.deltaTime * 8);
             }
         }
         else if (state == MoveState.WebSwing)
@@ -757,7 +746,7 @@ public class SSH_PlayerMove : MonoBehaviour
             Debug.DrawLine(wallHit.point, wallHit.point + wallHit.normal, Color.green);
             if ((wallHit.distance < 1.2f))
             {
-                moveState = MoveState.Sticking;
+                ChangeState(MoveState.Sticking);
                 wallFlag = true;
                 rotY = body.localEulerAngles.y;
             }
