@@ -285,13 +285,22 @@ public class SB_Jet : MonoBehaviour
 
     //피격 이벤트를 받아서 처리 함수
     //필요속성 : 체력
-    public int hp = 3;
+
+    //HP슬라이더 컴포넌트를 가져온다
+    public GameObject HP_red;
+
+
+
+    //EnemyHP의 OndamageHP를 가져온다
+
     
     public void OnDamageProcess()
     {
-        hp--;
+        SB_EnemyHP.Instance.OnDamageHP();
+
+
         //체력이 없으면 상태를 죽음으로 전환 
-        if(hp <=0)
+        if (SB_EnemyHP.Instance.hp <=0)
         {
             e_state = EnemyState.Die;
         }
