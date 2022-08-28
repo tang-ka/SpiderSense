@@ -8,3 +8,5 @@ obj/
 *.csproj
 *.sln
 .vsconfig
+Assets/Scenes/GameScene.unity
+Assets/Scenes/GameScene.unity.meta
